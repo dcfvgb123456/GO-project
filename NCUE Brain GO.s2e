@@ -19,13 +19,13 @@
 		["w", "設定:蜂鳴器音調 %d.note 節拍 %d.beats","runBuzzer", "C4", "Half",
 		{"encode":"{s0}","setup":"","inc":"","def":"MeBuzzer buzzer;\n","work":"buzzer.tone({0}, {1});\ndelay(20);\n","loop":""}],
 
-    ["B", "%m.Sensor_pin 狀態 ","runDigitalt","紅色 光感測器",
+		["B", "%m.Sensor_pin 狀態 ","runDigitalt","紅色 光感測器",
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
 
-    ["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+    	["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
-    ["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
+    	["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
 
@@ -35,7 +35,7 @@
 		["R", "偵測溫度","getTemp","0",
 		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*5000)/1024)-500)/10\n ","loop":""}],
 
-    ["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
+    	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
 		{"encode":"{d0}","setup":"","inc":"","def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nreturn pulseIn(B,HIGH,30000)/58.0;}","work":"getDistance({0})","loop":""}],
 
 		/*
@@ -49,23 +49,14 @@
 		["w", "藍芽發送數據: %s","writeLine", "hello",
 		{"setup":"Serial.begin(9600);\n","inc":"","def":"MeSerial se;\n","work":"Serial.println({0});\n","loop":""}],
 
-		[
-			"b",
-			"藍芽輸入為%s",
-			"bluetoothpag",
-			"f",
-			{
-				"setup":"Serial.begin(9600);\n",
-				"inc":"",
-				"def":"MeSerial se;\n",
-				"work":"String(String(se.readDataLine())) == {0}",
-				"loop":""
-			}
-		],
+		["b", "藍芽輸入為%s", "bluetoothpag", "f",
+		{"setup":"Serial.begin(9600);\n", "inc":"", "def":"MeSerial se;\n", "work":"String(String(se.readDataLine())) == {0}", "loop":""}],
 
 		["R", "3-axis gyro %d.GyroAxis angle","getGyro","X-Axis",
 		{"encode":"{d0}","setup":"gyro.begin();\n","inc":"","def":"MeGyro gyro;\n","work":"gyro.getAngle({0})","loop":"gyro.update();\n"}],
 
+		["w", "set digital pin %n output as %d.digital","runDigital", "24", "HIGH",
+		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 	],
 
 	"menus": {
@@ -101,13 +92,14 @@
 		"touch_mode":["direct","toggle"],
 		"button_key":["key1","key2","key3","key4"],
 		"humiture":["humidity","temperature"],
-                "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
-                "LED_Color":["紅色LED","黃色LED","綠色LED"],
-                "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
-                "LED_Switch":["開","關"],
-                "Servo_Color":["綠色調角器","黃色調角器"],
-                "Ultrasonic_Color":["白色超音波","藍色超音波"],
-                "servovalue":["0","45","90","135","180"]
+        "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
+        "LED_Color":["紅色LED","黃色LED","綠色LED"],
+        "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
+        "LED_Switch":["開","關"],
+        "Servo_Color":["綠色調角器","黃色調角器"],
+        "Ultrasonic_Color":["白色超音波","藍色超音波"],
+        "servovalue":["0","45","90","135","180"],
+		"digital":["HIGH", "LOW"]
 	},
 
 	"values":{
