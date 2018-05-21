@@ -38,13 +38,11 @@
     	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
 		{"encode":"{d0}","setup":"","inc":"","def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nreturn pulseIn(B,HIGH,30000)/58.0;}","work":"getDistance({0})","loop":""}],
 
-		/*
 		["b","有數據可讀","isAvailable",
 		{"setup":"Serial.begin(9600);\n","inc":"","def":"MeSerial se;\n","work":"se.dataLineAvailable()==0","loop":""}],
 
 		["R","讀取藍芽數據","readLine",
 		{"setup":"Serial.begin(9600);\n","inc":"","def":"MeSerial se;\n","work":"se.readDataLine()","loop":""}],
-		*/
 
 		["w", "藍芽發送數據: %s","writeLine", "hello",
 		{"setup":"Serial.begin(9600);\n","inc":"","def":"MeSerial se;\n","work":"Serial.println({0});\n","loop":""}],
@@ -55,16 +53,14 @@
 		["R", "3-axis gyro %d.GyroAxis angle","getGyro","X-Axis",
 		{"encode":"{d0}","setup":"gyro.begin();\n","inc":"","def":"MeGyro gyro;\n","work":"gyro.getAngle({0})","loop":"gyro.update();\n"}],
 
-		/*
 		["B", "read digital pin %n","getDigital","24",
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
-		*/
 
 		["R", "類比訊號ADC %d.PinSel","getAnalog","1",
 		{"encode":"{d0}","setup":"pinMode(23+{0},INPUT);\n","inc":"","def":"","work":"analogRead(23+{0})","loop":""}],
 
 		["R", "一氧化碳濃度(ppm)", "CO_ppm",
-		{"setup":"MQ7 mq7(analogRead(24),5.0);\npinMode(24,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"","work":"mq7.getPPM()","loop":""}],
+		{"setup":"pinMode(24,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(24),5.0);\n","work":"mq7.getPPM()","loop":""}],
 	],
 
 	"menus": {
