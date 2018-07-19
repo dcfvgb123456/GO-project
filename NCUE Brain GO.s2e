@@ -61,6 +61,16 @@
 
 		["R", "一氧化碳濃度(ppm)", "CO_ppm",
 		{"setup":"pinMode(24,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(24),5.0);\n","work":"mq7.getPPM()","loop":""}],
+
+		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
+		{
+		"encode":"{d0}",
+		"setup":"Wire.begin();\nSerial.begin(9600);\n",
+		"inc":"#include \"GroveColorSensor.h\"\n",
+		"def":"int red_d, green_d, blue_d;\nint getRGB(int color) {\nswitch(color) {\ncase 0: return red_d;\ncase 1: return green_d;\ncase 2: return blue_d;\n}\n }",
+		"work":"getRGB({0})",
+		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
+		}],
 	],
 
 	"menus": {
@@ -105,6 +115,7 @@
         "Ultrasonic_Color":["白色超音波","藍色超音波"],
         "servovalue":["0","45","90","135","180"],
 		"digital":["HIGH", "LOW"],
+		"RGB_detector":["偵測紅色", "偵測綠色", "偵測藍色"],
 	},
 
 	"values":{
@@ -221,6 +232,9 @@
 		"key2":2,
 		"key3":3,
 		"key4":4,
+		"偵測紅色":0,
+		"偵測綠色":1,
+		"偵測藍色":2,
 	},
 	"translators":{
 	}
