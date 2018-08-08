@@ -57,10 +57,10 @@
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
 
 		["R", "類比訊號ADC %d.PinSel","getAnalog","1",
-		{"encode":"{d0}","setup":"pinMode(23+{0},INPUT);\n","inc":"","def":"","work":"analogRead(23+{0})","loop":""}],
+		{"encode":"{d0}","setup":"pinMode(14+{0},INPUT);\n","inc":"","def":"","work":"analogRead(14+{0})","loop":""}],
 
 		["R", "一氧化碳濃度(ppm)", "CO_ppm",
-		{"setup":"pinMode(24,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(24),5.0);\n","work":"mq7.getPPM()","loop":""}],
+		{"setup":"pinMode(15,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
 
 		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
 		{
