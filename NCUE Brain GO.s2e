@@ -63,14 +63,13 @@
 		{"setup":"pinMode(24,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(24),5.0);\n","work":"mq7.getPPM()","loop":""}],
 
 		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
-		{
-		"encode":"{d0}",
-		"setup":"Wire.begin();\nSerial.begin(9600);\n",
+		{"encode":"{d0}",
+		"setup":"Wire.begin();\n",
 		"inc":"#include \"GroveColorSensor.h\"\n",
-		"def":"int red_d, green_d, blue_d;\nint getRGB(int color) {\nswitch(color) {\ncase 0: return red_d;\ncase 1: return green_d;\ncase 2: return blue_d;\n}\n }",
-		"work":"getRGB({0})",
-		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
-		}],
+		"def":"int red_d, green_d, blue_d, rgbd_1, rgbd_2, rgbd_3;\n",
+		"work":"0",
+		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\nwhile(1){colorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(red_d,DEC);\ndelay(300);\n}"
+		}]
 	],
 
 	"menus": {
@@ -232,9 +231,9 @@
 		"key2":2,
 		"key3":3,
 		"key4":4,
-		"偵測紅色":0,
-		"偵測綠色":1,
-		"偵測藍色":2,
+		"偵測紅色":1,
+		"偵測綠色":2,
+		"偵測藍色":3,
 	},
 	"translators":{
 	}
