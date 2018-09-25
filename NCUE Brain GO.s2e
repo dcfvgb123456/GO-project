@@ -36,7 +36,10 @@
 		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*5000)/1024)-500)/10\n ","loop":""}],
 
     	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
-		{"encode":"{d0}","setup":"","inc":"","def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nreturn pulseIn(B,HIGH,30000)/58.0;}","work":"getDistance({0})","loop":""}],
+		{"encode":"{d0}",
+		"setup":"","inc":"",
+		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n }",
+		"work":"getDistance({0})","loop":""}],
 
 		["b","有數據可讀","isAvailable",
 		{"setup":"Serial.begin(9600);\n","inc":"","def":"MeSerial se;\n","work":"se.dataLineAvailable()==0","loop":""}],
@@ -70,6 +73,18 @@
 		"def":"int red_d, green_d, blue_d;\nint getRGB(int color) {\nswitch(color) {\ncase 0: return red_d;\ncase 1: return green_d;\ncase 2: return blue_d;\n}\n }",
 		"work":"getRGB({0})",
 		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
+		}],
+
+		["R", "PM2.5數值", "PM_Detector",
+		{
+		"encode":"{d0}",
+		"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(16,OUTPUT);\n",
+		"inc":"",
+		"def":"int samplingTime = 280;\nint deltaTime = 40;\nint sleepTime = 9680;\nfloat voMeasured = 0;\nfloat calcVoltage = 0;\nfloat dustDensity = 0;",
+		"work":"dustDensity",
+		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\n
+						digitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\n
+						Serial.print(dustDensity * 1000);\ndelay(1000);"
 		}],
 	],
 
