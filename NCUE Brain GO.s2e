@@ -82,10 +82,25 @@
 		"inc":"",
 		"def":"int samplingTime = 280;\nint deltaTime = 40;\nint sleepTime = 9680;\nfloat voMeasured = 0;\nfloat calcVoltage = 0;\nfloat dustDensity = 0;",
 		"work":"dustDensity",
-		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\n
-						digitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\n
-						Serial.print(dustDensity * 1000);\ndelay(1000);"
+		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\nSerial.print(dustDensity * 1000);\ndelay(1000);"
 		}],
+
+		[
+			"w",
+			"設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString",
+			"LCD_show",
+			1,
+			1,
+			"",
+			{
+				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\nlcd.setCursor({1}-1, {0}-1);\nlcd.print({2});\n",
+				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
+				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\n",
+				"work":"",
+				"loop":"",
+				// LCD loop -> lcd.setCursor(0, 1);\nlcd.print(1);\nlcd.setCursor(8, 1);\nlcd.print(2);
+			}
+		],
 	],
 
 	"menus": {
@@ -131,6 +146,8 @@
         "servovalue":["0","45","90","135","180"],
 		"digital":["HIGH", "LOW"],
 		"RGB_detector":["偵測紅色", "偵測綠色", "偵測藍色"],
+		"LCDrow":[1, 2],
+		"LCDcol":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
 	},
 
 	"values":{
