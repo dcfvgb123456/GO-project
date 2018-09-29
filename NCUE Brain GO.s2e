@@ -84,7 +84,20 @@
 		"work":"dustDensity",
 		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\nSerial.print(dustDensity * 1000);\ndelay(1000);"
 		}],
-
+		[
+			"w",
+			"啟動LCD",
+			"LCD_show_initial",
+			{
+				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\nString str=\"\";\n",
+				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
+				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nString s=\"                                \";\n",
+				"work":"",
+				"loop":"lcd.setCursor(0, 0);\nlcd.print(s);\nlcd.setCursor(0, 1);\nlcd.print(&s[16]);\n",
+				// LCD loop -> lcd.setCursor(0, 1);\nlcd.print(1);\nlcd.setCursor(8, 1);\nlcd.print(2);
+				// lcd.setCursor({1}-1, {0}-1);\nlcd.print({2});\n
+			}
+		],
 		[
 			"w",
 			"設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString",
@@ -93,12 +106,13 @@
 			1,
 			"",
 			{
-				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\nlcd.setCursor({1}-1, {0}-1);\nlcd.print({2});\n",
+				"setup":"str=\"{2}\";\nfor(int i=0;{0}*16+{1}+i-17<32&&i<str.length();i=i+1)\n	s[{0}*16+{1}+i-17]=str[i];\n",
 				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
 				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\n",
 				"work":"",
 				"loop":"",
 				// LCD loop -> lcd.setCursor(0, 1);\nlcd.print(1);\nlcd.setCursor(8, 1);\nlcd.print(2);
+				// lcd.setCursor({1}-1, {0}-1);\nlcd.print({2});\n
 			}
 		],
 	],
