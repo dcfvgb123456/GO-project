@@ -93,9 +93,7 @@
 				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
 				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nString s=\"                                \";\n",
 				"work":"",
-				"loop":"lcd.setCursor(0, 0);\nlcd.print(s);\nlcd.setCursor(0, 1);\nlcd.print(&s[16]);\n",
-				// LCD loop -> lcd.setCursor(0, 1);\nlcd.print(1);\nlcd.setCursor(8, 1);\nlcd.print(2);
-				// lcd.setCursor({1}-1, {0}-1);\nlcd.print({2});\n
+				"loop":"lcd.setCursor(0, 0);\nlcd.print(s);\n\nlcd.setCursor(0, 1);\nlcd.print(&s[16]);\n",
 			}
 		],
 		[
@@ -104,15 +102,13 @@
 			"LCD_show",
 			1,
 			1,
-			"",
+			" ",
 			{
-				"setup":"str=\"{2}\";\nfor(int i=0;{0}*16+{1}+i-17<32&&i<str.length();i=i+1)\n	s[{0}*16+{1}+i-17]=str[i];\n",
+				"setup":"str=String({2});\nfor(int i=0;{0}*16+{1}+i-17<32&&i<str.length();i=i+1)\n	s[{0}*16+{1}+i-17]=str[i];\n",
 				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
 				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\n",
 				"work":"",
 				"loop":"",
-				// LCD loop -> lcd.setCursor(0, 1);\nlcd.print(1);\nlcd.setCursor(8, 1);\nlcd.print(2);
-				// lcd.setCursor({1}-1, {0}-1);\nlcd.print({2});\n
 			}
 		],
 	],
