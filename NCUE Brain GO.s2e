@@ -87,13 +87,13 @@
 		[
 			"w",
 			"啟動LCD",
-			"LCD_show_initial",
+			"LCD_initial",
 			{
-				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\nString str=\"\";\n",
+				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\n",
 				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
-				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nString s=\"                                \";\n",
+				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nchar LCDstring[32] = {' '};\nString str=\"\";\n\nvoid setLCD(int row, int col) {\nint index = row * 16 + col- 17;\nfor(int i=0; index+i < 32 && i < str.length(); i++)\nLCDstring[index+i]=str[i];\n }\n",
 				"work":"",
-				"loop":"lcd.setCursor(0, 0);\nlcd.print(s);\n\nlcd.setCursor(0, 1);\nlcd.print(&s[16]);\n",
+				"loop":"lcd.setCursor(0, 0);\nlcd.print(LCDstring);\n\nlcd.setCursor(0, 1);\nlcd.print(&LCDstring[16]);\n",
 			}
 		],
 		[
@@ -104,10 +104,22 @@
 			1,
 			" ",
 			{
-				"setup":"str=String({2});\nfor(int i=0;{0}*16+{1}+i-17<32&&i<str.length();i=i+1)\n	s[{0}*16+{1}+i-17]=str[i];\n",
-				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
-				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\n",
-				"work":"",
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"str = String({2});\nsetLCD({0}, {1});\n",
+				"loop":"",
+			}
+		],
+		[
+			"w",
+			"清除LCD內容",
+			"LCD_clear",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"void str_clear() {\nfor(int i = 0; i < 32; ++i)\nLCDstring[i] = ' ';\n} \n",
+				"work":"str_clear();\nlcd.clear();\n",
 				"loop":"",
 			}
 		],
