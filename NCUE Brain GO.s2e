@@ -63,7 +63,7 @@
 		{"encode":"{d0}","setup":"pinMode(14+{0},INPUT);\n","inc":"","def":"","work":"analogRead(14+{0})","loop":""}],
 
 		["R", "一氧化碳濃度(ppm)", "CO_ppm",
-		{"setup":"pinMode(15,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
+		{"setup":"Serial.begin(9600);\npinMode(15,INPUT);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
 
 		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
 		{
@@ -121,6 +121,60 @@
 				"def":"void str_clear() {\nfor(int i = 0; i < 32; ++i)\nLCDstring[i] = ' ';\n} \n",
 				"work":"str_clear();\nlcd.clear();\n",
 				"loop":"",
+			}
+		],
+		[
+			"w",
+			"wifi連線:SSID=%s Password=%s",
+			"setupWifi",
+			"",
+			"",
+			{
+				"setup":"Serial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
+				"inc":"#define DEBUG true\n",
+				"def":"String str_CWJAP=\"AT+CWJAP=\";\nchar DQ = '\"';\nString mySSID = {0}; // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = \"RIJZQTNUE1RLYEE6\"; // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar A = 0;\nchar B = 0;\nchar C = 0;\n
+String espData(String command, const int timeout, boolean debug)\n
+{\n
+String response = \"\";\n
+Serial.println(command);\n
+long int time = millis();\n
+while ((time + timeout) > millis()) {\nwhile (Serial.available()) {\nchar c = Serial.read();\nresponse += c;\n
+}\n }\nreturn response;\n }
+\n",
+				"work":"",
+				"loop":"A = 13; B = 12;\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\n",
+			}
+		],
+		[
+			"w",
+			"wifi Field%n Name%s value%n",
+			"setWifiFields",
+			"1",
+			"",
+			"",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"int sendVal{0};\nString sendData = \"GET /update?api_key=\" + myAPI;\n",
+				"work":"",
+				"loop":"sendVal{0} = {2};\nsendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n",
+			}
+		],
+		[
+			"w",
+			"送出Field資訊",
+			"sendFieldData",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"//hope for another better software to support extension\n",
+				"work":"",
+				"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
+espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
+espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
+Serial.find(\">\");\nSerial.println(sendData);\n
+espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
+delay(5000);\n",
 			}
 		],
 	],
