@@ -126,22 +126,36 @@
 		],
 		[
 			"w",
-			"wifi連線:SSID=%s Password=%s",
+			"wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行",
 			"setupWifi",
 			"",
 			"",
+			"硬體",
 			{
-				"setup":"Serial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
+				"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
 				"inc":"#define DEBUG true\n",
-				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = {0}; // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = \"RIJZQTNUE1RLYEE6\"; // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar A = 0;\nchar B = 0;\nchar C = 0;\n
+				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = {0}; // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = \"RIJZQTNUE1RLYEE6\"; // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar A = 0;\nchar B = 0;\nchar C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
 String espData(String command, const int timeout, boolean debug) {\n
-	String response = \"\";\n
+String response = \"\";\n
+if({2} == 1)\n
+	espSerial.println(command);\n
+else\n
 	Serial.println(command);\n
-	long int time = millis();\n
-	while ((time + timeout) > millis()) {\n
-		while (Serial.available()) {\n
-			char c = Serial.read();\n
-			response += c; }  } \nreturn response;}",
+long int time = millis();\n
+while ((time + timeout) > millis()) {\n
+if({2} == 1)//soft\n
+	while (espSerial.available()) {\n
+	char c = espSerial.read();\n
+	response += c;//soft\n}//soft end
+if({2} == 0)//hard\n
+	while (Serial.available()) {\n
+	char c = Serial.read();\n
+	response += c;//hard\n
+}//hard end\n
+}//while end\n
+
+return response;\n
+}//espData end\n",
 				"work":"",
 				"loop":"A = 13; B = 12;\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\n",
 			}
@@ -173,7 +187,8 @@ String espData(String command, const int timeout, boolean debug) {\n
 				"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
 espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
 espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
-Serial.find(\">\");\nSerial.println(sendData);\n
+if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
+else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
 espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
 delay(5000);\n",
 			}
@@ -225,6 +240,7 @@ delay(5000);\n",
 		"RGB_detector":["偵測紅色", "偵測綠色", "偵測藍色"],
 		"LCDrow":[1, 2],
 		"LCDcol":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+		"WifiHorS":["硬體", "軟體"],
 	},
 
 	"values":{
@@ -344,6 +360,8 @@ delay(5000);\n",
 		"偵測紅色":0,
 		"偵測綠色":1,
 		"偵測藍色":2,
+		"硬體":0,
+		"軟體":1,
 	},
 	"translators":{
 	}
