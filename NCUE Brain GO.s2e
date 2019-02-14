@@ -6,7 +6,7 @@
 	"javascriptURL":"js/NCUE Brain GO.js",
 	"isMakeBlockBoard":false,
 	"blockSpecs": [
-		["h","NCUE Brain GO 主程式 V1.2","runArduino",{"src":"","inc":"#include <MeMCore.h>\n","def":"","setup":"","loop":""}],
+		["h","NCUE Brain GO 主程式 V2.0","runArduino",{"src":"","inc":"#include <MeMCore.h>\n","def":"","setup":"","loop":""}],
 
 		["-"],
 
@@ -22,23 +22,25 @@
 		["B", "%m.Sensor_pin 狀態 ","runDigitalt","紅色 光感測器",
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
 
-    	["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+    		["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
+		["w", "設定 %m.IO_outin 為 %m.IO_Switch","IO", "紅光", "亮",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
-    	["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
+    		["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
 
 		["w", "設定 %d.Servo_Color 角度為 %d.servovalue","runServo", "綠色調角器", 90,
 		{"encode":"{d0}{d1}","setup":"servo_{0}.attach({0});\n","inc":"","def":"Servo servo_{0};\n","work":"servo_{0}.write({1});\n","loop":""}],
 
-		["R", "偵測溫度","getTemp","0",
-		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*5000)/1024)-500)/10\n ","loop":""}],
+		["R", "測得溫度(°C)","getTemp","0",
+		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*50)/10)-500)/10\n ","loop":""}],
 
-    	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
+    		["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
 		{"encode":"{d0}",
 		"setup":"","inc":"",
-		"def":"float getDistance(int trig) {\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n } // END getDistanc\n",
+		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n }",
 		"work":"getDistance({0})","loop":""}],
 
 		["b","有數據可讀","isAvailable",
@@ -62,8 +64,8 @@
 		["R", "類比訊號ADC %d.PinSel","getAnalog","1",
 		{"encode":"{d0}","setup":"pinMode(14+{0},INPUT);\n","inc":"","def":"","work":"analogRead(14+{0})","loop":""}],
 
-		["R", "一氧化碳濃度(ppm)", "CO_ppm",
-		{"setup":"Serial.begin(9600);\npinMode(15,INPUT);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
+		["R", "測得一氧化碳濃度(ppm)", "CO_ppm",
+		{"setup":"pinMode(15,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
 
 		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
 		{
@@ -75,60 +77,79 @@
 		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
 		}],
 
-		["R", "PM2.5數值", "PM_Detector",
+		["R", "測得PM2.5數值(μg/m3)", "PM_Detector",
 		{
 		"encode":"{d0}",
-		"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(16,OUTPUT);\n",
+		"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(9,OUTPUT);\n",
 		"inc":"",
 		"def":"int samplingTime = 280;\nint deltaTime = 40;\nint sleepTime = 9680;\nfloat voMeasured = 0;\nfloat calcVoltage = 0;\nfloat dustDensity = 0;",
 		"work":"dustDensity",
-		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\nSerial.print(dustDensity * 1000);\ndelay(1000);"
+		"loop":"digitalWrite(9,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(9,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage ;\ndustDensity = (dustDensity * 1000);\nSerial.print(dustDensity);\ndelay(100);"
 		}],
-		["w", "啟動LCD", "LCD_initial",
-		{
-			"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\n",
-			"inc":"#include \"LiquidCrystal_I2C.h\"\n",
-			"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nchar LCDstring[32] = {' '};\nString str=\"\";\n\nvoid setLCD(int row, int col) {\nint index = row * 16 + col- 17;\nfor(int i=0; index+i < 32 && i < str.length(); i++)\nLCDstring[index+i]=str[i];\n }\n",
-			"work":"",
-			"loop":"lcd.setCursor(0, 0);\nlcd.print(LCDstring);\n\nlcd.setCursor(0, 1);\nlcd.print(&LCDstring[16]);\n",
-		}
+		[
+			"w",
+			"啟動LCD",
+			"LCD_initial",
+			{
+				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\n",
+				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
+				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nchar LCDstring[32] = {' '};\nString str=\"\";\n\nvoid setLCD(int row, int col) {\nint index = row * 16 + col- 17;\nfor(int i=0; index+i < 32 && i < str.length(); i++)\nLCDstring[index+i]=str[i];\n }\n",
+				"work":"",
+				"loop":"lcd.setCursor(0, 0);\nlcd.print(LCDstring);\n\nlcd.setCursor(0, 1);\nlcd.print(&LCDstring[16]);\n",
+			}
 		],
-		["w", "設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString", "LCD_show", 1, 1, " ",
-		{
-			"setup":"",
-			"inc":"",
-			"def":"",
-			"work":"str = String({2});\nsetLCD({0}, {1});\n",
-			"loop":"",
-		}
+		[
+			"w",
+			"設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString",
+			"LCD_show",
+			1,
+			1,
+			" ",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"str = String({2});\nsetLCD({0}, {1});\n",
+				"loop":"",
+			}
 		],
-		["w", "清除LCD內容", "LCD_clear",
-		{
-			"setup":"",
-			"inc":"",
-			"def":"void str_clear() {\nfor(int i = 0; i < 32; ++i)\nLCDstring[i] = ' ';\n} \n",
-			"work":"str_clear();\nlcd.clear();\n",
-			"loop":"",
-		}
+		[
+			"w",
+			"清除LCD內容",
+			"LCD_clear",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"void str_clear() {\nfor(int i = 0; i < 32; ++i)\nLCDstring[i] = ' ';\n} \n",
+				"work":"str_clear();\nlcd.clear();\n",
+				"loop":"",
+			}
 		],
-		["w", "wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行", "setupWifi", "SSID", "PWD", "硬體",
-		{
-			"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
-			"inc":"#define DEBUG true\n",
-			"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = {0}; // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = \"RIJZQTNUE1RLYEE6\"; // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar port_A = 0;\nchar port_B = 0;\nchar port_C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
+		[
+			"w",
+			"wifi連線:SSID=%s Password=%s API=%s 以 %m.WifiHorS 運行",
+			"setupWifi",
+			" ",
+			" ",
+			"RIJZQTNUE1RLYEE6",
+			"硬體",
+			{
+				"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
+				"inc":"#define DEBUG true\n",
+				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = String({0}); // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = String({2}); // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar port_A = 0;\nchar port_B = 0;\nchar port_C = 0;\nint Hard_or_Soft = {3};\nSoftwareSerial espSerial(3,2);\n
 				String espData(String command, const int timeout, boolean debug) {\n
 				String response = \"\";\n
-				if({2} == 1)\n
+				if({3} == 1)\n
 					espSerial.println(command);\n
 				else\n
 					Serial.println(command);\n
 				long int time = millis();\n
 				while ((time + timeout) > millis()) {\n
-				if({2} == 1)//soft\n
+				if({3} == 1)//soft\n
 					while (espSerial.available()) {\n
 						char c = espSerial.read();\n
 						response += c;//soft\n}// soft end
-						if({2} == 0)//hard\n
+						if({3} == 0)//hard\n
 						while (Serial.available()) {\n
 							char c = Serial.read();\n
 							response += c;//hard\n
@@ -136,33 +157,42 @@
 				} // while end\n
 				return response;\n
 				}// espData end\n",
-			"work":"",
-			"loop":"port_A = 13; port_B = 12;\npinMode(port_A,OUTPUT);\ndigitalWrite(port_A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(port_A,HIGH);\ndelayMicroseconds(10);\npinMode(port_B,INPUT);\nport_C = pulseIn(port_B,HIGH,30000)/58.0;\n",
-		}
+				"work":"",
+				"loop":"port_A = 13; port_B = 12;\npinMode(port_A,OUTPUT);\ndigitalWrite(port_A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(port_A,HIGH);\ndelayMicroseconds(10);\npinMode(port_B,INPUT);\nport_C = pulseIn(port_B,HIGH,30000)/58.0;\n",
+			}
 		],
-		["w", "wifi Field%n Name%s value%n", "setWifiFields", "1", "Name", "Value",
-		{
-			"setup":"",
-			"inc":"",
-			"def":"int sendVal{0};\nString sendData = \"GET /update?api_key=\" + myAPI;\n",
-			"work":"",
-			"loop":"sendVal{0} = {2};\nsendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n",
-		}
+		[
+			"w",
+			"wifi Field%n Name%s value%n",
+			"setWifiFields",
+			"1",
+			" ",
+			" ",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"int sendVal{0};\nString sendData = \"GET /update?api_key=\" + myAPI;\n",
+				"work":"",
+				"loop":"sendVal{0} = {2};\nsendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n",
+			}
 		],
-		["w", "送出Field資訊", "sendFieldData",
-		{
-			"setup":"",
-			"inc":"",
-			"def":"//hope for another better software to support extension\n",
-			"work":"",
-			"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
-			espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
-			espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
-			if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
-			else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
-			espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
-			delay(5000);\n",
-		}
+		[
+			"w",
+			"送出Field資訊",
+			"sendFieldData",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"//hope for another better software to support extension\n",
+				"work":"",
+				"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
+				espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
+				espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
+				if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
+				else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
+				espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
+				delay(5000);\n",
+			}
 		],
 	],
 
@@ -202,8 +232,10 @@
 		"humiture":["humidity","temperature"],
         "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
         "LED_Color":["紅色LED","黃色LED","綠色LED"],
+	"IO_outin":["紅光","藍光","綠光"],
         "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
         "LED_Switch":["開","關"],
+	"IO_Switch":["亮","不亮"],
         "Servo_Color":["綠色調角器","黃色調角器"],
         "Ultrasonic_Color":["白色超音波","藍色超音波"],
         "servovalue":["0","45","90","135","180"],
@@ -211,7 +243,6 @@
 		"RGB_detector":["偵測紅色", "偵測綠色", "偵測藍色"],
 		"LCDrow":[1, 2],
 		"LCDcol":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-		"WifiHorS":["硬體", "軟體"],
 	},
 
 	"values":{
@@ -268,22 +299,27 @@
 		"light sensor on board":6,
 		"開":0,
 		"關":1,
+		"亮":1,
+		"不亮":0,
+		"紅光":2,
+		"藍光":3,
+		"綠光":16,
 		"白色馬達":9,
 		"藍色馬達":10,
-        "綠色調角器":9,
-        "黃色調角器":10,
-        "白色超音波":12,
-        "藍色超音波":13,
+                "綠色調角器":9,
+                "黃色調角器":10,
+                "白色超音波":12,
+                "藍色超音波":13,
 		"紅色 光感測器":9,
 		"綠色 光感測器":10,
-        "紅色LED":9,
-        "黃色LED":11,
-        "綠色LED":10,
-        "PC1":15,
-        "PC2":16,
-        "PC3":17,
-        "PC4":18,
-        "PC5":19,
+                "紅色LED":9,
+                "黃色LED":11,
+                "綠色LED":10,
+                "PC1":15,
+                "PC2":16,
+                "PC3":17,
+                "PC4":18,
+                "PC5":19,
 		"X-Axis":1,
 		"Y-Axis":2,
 		"Z-Axis":3,
@@ -334,7 +370,6 @@
 		"硬體":0,
 		"軟體":1,
 	},
-
 	"translators":{
 	}
 }
