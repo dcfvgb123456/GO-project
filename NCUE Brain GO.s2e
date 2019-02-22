@@ -40,7 +40,7 @@
     		["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
 		{"encode":"{d0}",
 		"setup":"","inc":"",
-		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n }",
+		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n } // 必要註解(以確保大括號存在)",
 		"work":"getDistance({0})","loop":""}],
 
 		["b","有數據可讀","isAvailable",
@@ -127,29 +127,29 @@
 		],
 		[
 			"w",
-			"wifi連線:SSID=%s Password=%s API=%s 以 %m.WifiHorS 運行",
+			"wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行 API=%s",
 			"setupWifi",
 			" ",
 			" ",
-			"RIJZQTNUE1RLYEE6",
 			"硬體",
+			"RIJZQTNUE1RLYEE6",
 			{
 				"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
 				"inc":"#define DEBUG true\n",
-				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = String({0}); // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = String({2}); // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar port_A = 0;\nchar port_B = 0;\nchar port_C = 0;\nint Hard_or_Soft = {3};\nSoftwareSerial espSerial(3,2);\n
+				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = String({0}); // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = String({3}); // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar port_A = 0;\nchar port_B = 0;\nchar port_C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
 				String espData(String command, const int timeout, boolean debug) {\n
 				String response = \"\";\n
-				if({3} == 1)\n
+				if({2} == 1)\n
 					espSerial.println(command);\n
 				else\n
 					Serial.println(command);\n
 				long int time = millis();\n
 				while ((time + timeout) > millis()) {\n
-				if({3} == 1)//soft\n
+				if({2} == 1)//soft\n
 					while (espSerial.available()) {\n
 						char c = espSerial.read();\n
 						response += c;//soft\n}// soft end
-						if({3} == 0)//hard\n
+						if({2} == 0)//hard\n
 						while (Serial.available()) {\n
 							char c = Serial.read();\n
 							response += c;//hard\n
@@ -243,6 +243,7 @@
 		"RGB_detector":["偵測紅色", "偵測綠色", "偵測藍色"],
 		"LCDrow":[1, 2],
 		"LCDcol":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+		"WifiHorS":["硬體", "軟體"],
 	},
 
 	"values":{
