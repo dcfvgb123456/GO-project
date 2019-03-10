@@ -193,6 +193,485 @@ espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
 delay(5000);\n",
 			}
 		],
+		[
+			"w",
+			"LED初始設定",
+			"LED_Init",
+			{
+				"setup":"pinMode(DataPin,OUTPUT);\ndigitalWrite(DataPin,LOW);\n",
+				"inc":"",
+				"def":"#define __Cascade_All__ 8\n
+volatile unsigned char DataPin = 3;\n
+void LED_Decode(unsigned char R,unsigned char G,unsigned char B){//1
+unsigned char i = 0;//2
+unsigned char Data_temp = 0;//3
+noInterrupts();//4
+for(i = 0;i<8;i++){//5
+Data_temp = B & 0x80;//6
+digitalWrite(DataPin,HIGH);//7
+if(Data_temp != 0x80)//8
+  digitalWrite(DataPin,LOW);//9
+else//10
+  digitalWrite(DataPin,HIGH);//11
+B = B <<1;//12
+digitalWrite(DataPin,LOW);//13
+}//14
+for(i = 0;i<8;i++){//15
+Data_temp = R & 0x80;//16
+digitalWrite(DataPin,HIGH);//17
+if(Data_temp != 0x80)//18
+  digitalWrite(DataPin,LOW);//19
+else//20
+  digitalWrite(DataPin,HIGH);//21
+R = R <<1;//22
+digitalWrite(DataPin,LOW);//23
+}//24
+for(i = 0;i<8;i++){//25
+Data_temp = G & 0x80;//26
+digitalWrite(DataPin,HIGH);//27
+if(Data_temp != 0x80)//28
+  digitalWrite(DataPin,LOW);//29
+else//30
+  digitalWrite(DataPin,HIGH);//31
+G = G <<1;//32
+digitalWrite(DataPin,LOW);//33
+}//34
+interrupts();//35
+}//36",
+				"work":"",
+				"loop":"",
+			}
+		],
+		[
+			"w",
+			"呼吸",
+			"Breathing",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"
+typedef struct{
+unsigned char bit0 : 1;
+unsigned char bit1 : 1;
+unsigned char bit2 : 1;
+unsigned char bit3 : 1;
+unsigned char bit4 : 1;
+unsigned char bit5 : 1;
+unsigned char bit6 : 1;
+unsigned char bit7 : 1;
+}bit_type;
+typedef union{
+bit_type   bit_var;
+unsigned char byte_var;
+}UN;
+volatile unsigned char Red,Green,Blue;
+bit_type Breath_Var;
+#define Breath_ColorChange_flag Breath_Var.bit0
+#define PatternChangeFlag Breath_Var.bit1
+#define Breath_UpDown_flag Breath_Var.bit2
+
+volatile UN R_Data;
+#define  red_1bit  R_Data.bit_var.bit0
+#define  red_2bit  R_Data.bit_var.bit1
+#define  red_3bit  R_Data.bit_var.bit2
+#define  red_4bit  R_Data.bit_var.bit3
+#define  red_5bit  R_Data.bit_var.bit4
+#define  red_6bit  R_Data.bit_var.bit5
+#define  red_7bit  R_Data.bit_var.bit6
+#define  red_8bit  R_Data.bit_var.bit7
+
+volatile UN G_Data;
+#define  green_1bit  G_Data.bit_var.bit0
+#define  green_2bit  G_Data.bit_var.bit1
+#define  green_3bit  G_Data.bit_var.bit2
+#define  green_4bit  G_Data.bit_var.bit3
+#define  green_5bit  G_Data.bit_var.bit4
+#define  green_6bit  G_Data.bit_var.bit5
+#define  green_7bit  G_Data.bit_var.bit6
+#define  green_8bit  G_Data.bit_var.bit7
+
+volatile UN B_Data;
+#define  blue_1bit  B_Data.bit_var.bit0
+#define  blue_2bit  B_Data.bit_var.bit1
+#define  blue_3bit  B_Data.bit_var.bit2
+#define  blue_4bit  B_Data.bit_var.bit3
+#define  blue_5bit  B_Data.bit_var.bit4
+#define  blue_6bit  B_Data.bit_var.bit5
+#define  blue_7bit  B_Data.bit_var.bit6
+#define  blue_8bit  B_Data.bit_var.bit7
+volatile unsigned char Breath_Index = 0;
+
+void Breath_adjust(unsigned char UpDown,unsigned char R_Index,unsigned char G_Index,unsigned char B_Index){//ba1
+unsigned char i = 0,j;//ba2
+if(UpDown ==1){ //up//ba3
+Red +=  R_Index;//ba4
+Green += G_Index;//ba5
+Blue += B_Index; //ba6
+}//ba7
+else if(UpDown ==0){//down//ba8
+Red -=  R_Index;//ba9
+Green -= G_Index;//ba10
+Blue -= B_Index;  //ba11
+}//ba12
+if(Breath_Index == 0){//ba13
+for(j=0;j<__Cascade_All__;j++){//ba14
+for(i=0;i<9;i++){//ba15
+LED_Decode(Red,Green,Blue); //ba16
+} //ba17
+}  //ba18
+}//ba19
+Breath_Index++;//ba20
+if(Breath_Index>2){//adjust berath step//ba21
+Breath_Index = 0; //ba22
+}//ba23
+}//ba24
+
+void breath(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//b1
+unsigned char i,j;//b2
+unsigned char i1,i2,i3,i4,i5,i6,i7,i8;//b3
+Breath_UpDown_flag = 1;//b4
+R_Data.byte_var = R;//b5
+G_Data.byte_var = G;//b6
+B_Data.byte_var = B;//b7
+for(i = 0;i<(Speed<<1);i++)  {//b8
+delay(8);//b9
+}//b10
+Red = 0;//b11
+Green = 0;//b12
+Blue = 0; //b13
+for(j = 0;j<2;j++){//b14
+for(i1 = 0;i1 < 1;i1++){//b15
+for(i2 = 0;i2 < 2;i2++){//b16
+for(i3 = 0;i3 < 2;i3++){//b17
+for(i4 = 0;i4 < 2;i4++){//b18
+for(i5 = 0;i5 < 2;i5++){//b19
+for(i6 = 0;i6 < 2;i6++){//b20
+for(i7 = 0;i7 < 2;i7++){//b21
+for(i8 = 0;i8 < 2;i8++){//b22
+if(PatternChangeFlag == 1){//b23
+i1 = 2;//b24
+i2 = 2;//b25
+i3 = 2;//b26
+i4 = 2;//b27
+i5 = 2;//b28
+i6 = 2;//b29
+i7 = 2;//b30
+i8 = 2;//b31
+break;  //b32
+}//b33
+Breath_adjust(Breath_UpDown_flag,red_8bit,green_8bit,blue_8bit);//b34
+if(Breath_UpDown_flag ==1)//b35
+	delay(Speed+4);//b36
+else//b37
+	delay(Speed+1);//b38
+}  //b39
+Breath_adjust(Breath_UpDown_flag,red_7bit,green_7bit,blue_7bit);//b40
+if(Breath_UpDown_flag ==1)//b41
+	delay(Speed+3);//b42
+else//b43
+	delay(Speed+1);//b44
+}//b45
+Breath_adjust(Breath_UpDown_flag,red_6bit,green_6bit,blue_6bit);//b46
+if(Breath_UpDown_flag ==1)//b47
+	delay(Speed+2);//b48
+else//b49
+	delay(Speed+1);//b50
+}//b51
+Breath_adjust(Breath_UpDown_flag,red_5bit,green_5bit,blue_5bit);//b52
+if(Breath_UpDown_flag ==1)//b53
+	delay(Speed+1);//b54
+else//b55
+	delay(Speed+1);//b56
+}//b57
+Breath_adjust(Breath_UpDown_flag,red_4bit,green_4bit,blue_4bit);//b58
+if(Breath_UpDown_flag ==1)//b59
+	delay(Speed+1);//b60
+else//b61
+	delay(Speed+2);//b62
+}//b63
+Breath_adjust(Breath_UpDown_flag,red_3bit,green_3bit,blue_3bit);//b64
+if(Breath_UpDown_flag ==1)//b65
+	delay(Speed+1);//b66
+else//b67
+	delay(Speed+2); //b68
+}//b69
+Breath_adjust(Breath_UpDown_flag,red_2bit,green_2bit,blue_2bit);//b70
+if(Breath_UpDown_flag ==1)//b71
+	delay(Speed);//b72
+else//b73
+	delay(Speed+2);   //b74
+}//b75
+Breath_adjust(Breath_UpDown_flag,red_1bit,green_1bit,blue_1bit);//b76
+if(Breath_UpDown_flag ==1)//b77
+	delay(Speed);//b78
+else//b79
+	delay(Speed+3);//b80
+}//b81
+Breath_UpDown_flag++;//b82
+}//b83
+}//b84
+",
+				"work":"",
+				"loop":"breath(125,255,100,1);\n",
+			}
+		],
+		[
+			"w",
+			"colorful_rotation",
+			"colorful_rotation",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"
+volatile unsigned char turnning_Index = 0;
+void turnning(unsigned char Speed){//t1
+unsigned char GRB_BUF[3] = {0x00,0x00,0x00};//t2
+unsigned char i,j,temp;//t3
+turnning_Index++;//t4
+if(turnning_Index>2)//t5
+	turnning_Index = 0;//t6
+for(j=0;j<__Cascade_All__;j++){//t7
+GRB_BUF[0] = 0x00;//t8
+GRB_BUF[1] = 0x00;//t9
+GRB_BUF[2] = 0x00;//t10
+GRB_BUF[turnning_Index] = 0xff;//t11
+for (i = 0; i < 9; i++){//t12
+LED_Decode(GRB_BUF[0],GRB_BUF[1], GRB_BUF[2]); //t13
+temp = GRB_BUF[2];//t14
+GRB_BUF[2] = GRB_BUF[1];//t15
+GRB_BUF[1] = GRB_BUF[0];//t16
+GRB_BUF[0] = temp;//t17
+}//t18
+}//t19
+for(i= 0;i<Speed;i++){//t20
+delay(5); //t21
+}//t22
+}//t23",
+				"work":"",
+				"loop":"turnning(10);\n",
+			}
+		],
+		[
+			"w",
+			"colorful_streamer",
+			"colorful_streamer",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"
+volatile unsigned char ColorIndex = 0;
+const unsigned char ColorFadeTable[9][3] ={
+{0,240,5},
+{0,180,75},
+{0,75,180},
+{0,5,240},
+{75,0,180},
+{180,0,75},
+{220,0,5},
+{180,75,0},
+{75,180,0},
+};
+void RGB_fade(unsigned char Speed){//f1
+unsigned char i,temp,j,k;//f2
+if(++ColorIndex>8){//f3
+ColorIndex = 0;//f4
+} //f5
+for(j=0;j<__Cascade_All__;j++){//f6
+for(i=0;i<9;i++){//f7
+temp = ColorIndex+i;//f8
+if(temp>8)//f9
+	temp = temp-9;//f10
+LED_Decode(ColorFadeTable[temp][0],ColorFadeTable[temp][1],ColorFadeTable[temp][2]); //f11
+} //f12
+}//f13
+for(k = 0;k<Speed;k++){//f14
+delay(5); //f15
+}//f16
+}//f17
+",
+				"work":"",
+				"loop":"RGB_fade(10);\n",
+			}
+		],
+		[
+			"w",
+			"flashing",
+			"flashing",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"
+volatile unsigned char  twinkle_flag = 0;
+void twinkle(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//t1
+unsigned char i,j,k;//t2
+twinkle_flag = 0;//t3
+for(j = 0;j<2;j++){//t4
+if(twinkle_flag == 1){//t5
+twinkle_flag = 0;//t6
+}//t7
+else{//t8
+twinkle_flag = 1;//t9
+}//t10
+for(k=0;k<__Cascade_All__;k++) {//t11
+for(i = 0;i<9;i++){ //t12
+if(twinkle_flag == 1){//t13
+LED_Decode(R,G,B); //t14
+}//t15
+else{//t16
+LED_Decode(0,0,0);//t17
+}//t18
+} //t19
+}//t20
+for(i = 0;i<Speed;i++){//t21
+delay(20);//t22
+}//t23
+}//t24
+}//t25
+",
+				"work":"",
+				"loop":"twinkle(255,0,120,10);\n",
+			}
+		],
+		[
+			"w",
+			"flowing",
+			"flowing",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"
+const unsigned char ColorFadeTable[__Cascade_All__][3] =
+{//Red,Green,Blue
+{0,240,5}, //color of module #1
+{0,180,75},//color of module #2
+{0,5,240}, //color of module #3
+{75,0,180},//color of module #4
+{180,0,75},//color of module #5
+{220,0,5}, //color of module #6
+{180,75,0},//color of module #7
+{75,180,0},//color of module #8
+};
+volatile unsigned char waterfall_Index = 0;
+volatile unsigned char waterfall_UpDown_flag = 0;
+
+void waterfall(unsigned char Speed){//wf1
+unsigned char i,j,temp = 0,temp1= 0,Cascade_Total = 0;//wf2
+for(j=0;j<__Cascade_All__;j++) {//wf3
+temp = (j<<3)+j;//wf4
+if(waterfall_Index>=(temp+9)){//wf5
+temp = 9;//wf6
+}//wf7
+else if(waterfall_Index>temp){//wf8
+temp = waterfall_Index-temp;//wf9
+}//wf10
+else{//wf11
+temp = 0;//wf12
+} //wf13
+for(i = 0;i<9;i++){//wf14
+if(i < temp){//wf15
+LED_Decode(ColorFadeTable[j][0],ColorFadeTable[j][1],ColorFadeTable[j][2]);//wf16
+}  //wf17
+else{//wf18
+LED_Decode(255,255,255);//wf19
+}//wf20
+}  //wf21
+} //wf22
+Cascade_Total = ((__Cascade_All__)<<3)+__Cascade_All__;//wf23
+if(waterfall_UpDown_flag == 0){//wf24
+waterfall_Index++; //wf25
+if(waterfall_Index > Cascade_Total){//wf26
+waterfall_UpDown_flag = 1;//wf27
+waterfall_Index  = Cascade_Total;//wf28
+}//wf29
+}//wf30
+else{//wf31
+if(waterfall_Index >0){//wf32
+waterfall_Index--; //wf33
+}//wf34
+else if(waterfall_Index == 0){  //wf35
+waterfall_UpDown_flag = 0;//wf36
+waterfall_Index   = 0; //wf37
+}//wf38
+}//wf39
+for(i = 0;i<Speed;i++){//wf40
+delay(5);//wf41
+}//wf42
+}//wf43
+",
+				"work":"",
+				"loop":"waterfall(1);\n",
+			}
+		],
+		[
+			"w",
+			"flashing",
+			"flashing",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"
+volatile unsigned char  twinkle_flag = 0;
+void twinkle(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//t1
+unsigned char i,j,k;//t2
+twinkle_flag = 0;//t3
+for(j = 0;j<2;j++){//t4
+if(twinkle_flag == 1){//t5
+twinkle_flag = 0;//t6
+}//t7
+else{//t8
+twinkle_flag = 1;//t9
+}//t10
+for(k=0;k<__Cascade_All__;k++) {//t11
+for(i = 0;i<9;i++){ //t12
+if(twinkle_flag == 1){//t13
+LED_Decode(R,G,B); //t14
+}//t15
+else{//t16
+LED_Decode(0,0,0);//t17
+}//t18
+} //t19
+}//t20
+for(i = 0;i<Speed;i++){//t21
+delay(20);//t22
+}//t23
+}//t24
+}//t25
+",
+				"work":"",
+				"loop":"twinkle(255,0,120,10);\n",
+			}
+		],
+		[
+			"w",
+			"monochrome",
+			"monochrome",
+			{
+				"setup":"
+for(int i = 0; i < 72; i++){
+DisplayTable[i][0] = 0x00;
+DisplayTable[i][1] = 0x00;
+DisplayTable[i][2] = 0xff;
+}",
+				"inc":"",
+				"def":"
+unsigned char DisplayTable[72][3];
+
+void PermanentBright(void){//pb1
+unsigned char i,j;//pb2
+unsigned int temp;//pb3
+for(i=0;i<__Cascade_All__;i++){//pb4
+for(j = 0;j<9;j++){//pb5
+temp = (i<<3)+i+j;//pb6
+LED_Decode(DisplayTable[temp][0],DisplayTable[temp][1],DisplayTable[temp][2]);//pb7
+} //pb8
+}//pb9
+delay(10);//pb10
+}//pb11
+",
+				"work":"",
+				"loop":"PermanentBright();\n",
+			}
+		],
 	],
 
 	"menus": {
