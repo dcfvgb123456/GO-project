@@ -85,6 +85,135 @@
 		"work":"dustDensity",
 		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\nSerial.print(dustDensity * 1000);\ndelay(1000);"
 		}],
+
+		[
+			"w",
+			"wifi part1 SSID:%s 密碼:%s",
+			"WIFI_PT1","","",
+			{
+				"setup":"pinMode(A0, INPUT);//s1
+pinMode(A1, INPUT);//s2
+pinMode(RLED, OUTPUT);//s3
+pinMode(GLED, OUTPUT);//s4
+pinMode(BLED, OUTPUT);//s5
+digitalWrite(RLED, LOW);//s6
+digitalWrite(GLED, LOW);//s7
+digitalWrite(BLED, LOW);//s8
+mySerial.begin(9600);//s9
+Serial.begin(9600);//s10
+mySerial.println(\"AT+CWMODE=1\");//s11
+delay(1000);//s12
+mySerial.println(\"AT+CWJAP_DEF=\\\"{0}\\\",\\\"{1}\\\"\");//s13           //SSID = WIFI名稱 PASSWORD=WIFI密碼
+delay(10000);//s14",
+				"inc":"#include \"DHT.h\"\n",
+				"def":"#define dhtPin 3
+#define dhtType DHT11
+DHT dht(dhtPin, dhtType);
+unsigned char buff[4] ={0,0,0,0};
+unsigned char buss[4] ={0,0,0,0};
+unsigned char temp_H =0;
+unsigned char hum_H =0;
+unsigned char val_H=0;
+unsigned char val_L=0;
+SoftwareSerial mySerial(10, 11); // RX, TX
+int LED[]={0,0,0} ;
+int RLED = 5;
+int GLED = 6;
+int BLED = 7;
+void LEDD();
+char str;",
+				"work":"",
+				"loop":"",
+			}
+		],
+
+		[
+			"w",
+			"wifi part2 IP:%s PORT:%s",
+			"WIFI_PT2","","",
+			{
+				"setup":"mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\\"{0}\\\",{1}\");//s15             //IP=伺服器IP位置 PORT=3000
+delay(1000);//s16
+mySerial.println(\"AT+CIPMODE=1\");//s17
+delay(1000);//s18
+mySerial.println(\"AT+CIPSEND\");//s19
+delay(1000);//s20
+while(mySerial.available()){//s21
+Serial.println(mySerial.available());//s22
+mySerial.read();//s23
+}//s24
+Serial.println(mySerial.available());//s25",
+				"inc":"",
+				"def":"",
+				"work":"",
+				"loop":"float hum = dht.readHumidity();//l1//讀取濕度
+float temp = dht.readTemperature();//l12//讀取攝氏溫度
+temp_H = temp/1;//l3
+hum_H = hum/1;//l4
+buss[0]= temp_H;//l5
+buss[1]= (temp-temp_H)*10;//l6
+buss[2]= hum/1;//l7
+buss[3]= (hum-hum_H)*10;  //l8
+mySerial.begin(9600);//l9
+float val_1=analogRead(A0)*5.02/1013;//l10
+float val_3=analogRead(A1)*5.02/1013;//l11
+val_L=val_3/1;//l12
+buff[0]=val_H;//l13
+buff[1]=(val_1-val_H)*10;//l14
+buff[2]=val_L;//l15
+buff[3]=(val_3-val_L)*10;  //l16
+mySerial.print('S');//l17            /*將資料傳到樹梅派*/
+for(int z = 0;z<4;z++)//l18
+	mySerial.print(buss[z]);//l19
+for(int i = 0;i<4;i++)//l20
+	mySerial.print(buff[i]); //l21
+mySerial.print('E');//l22
+delay(200);//l23                  /*接受樹梅派的資料*/
+while(mySerial.available()>2) {//l24
+str=mySerial.read();//l25
+Serial.print(str);//l26
+LED[0]= str;//l27
+delay(20);//l28
+str=mySerial.read();//l29
+Serial.print(str);//l30
+LED[1]= str;//l31
+delay(20);//l32
+str=mySerial.read();//l33
+Serial.print(str);//l34
+LED[2]= str;//l35
+delay(20);//l36
+LEDD();//l37
+Serial.print(val_1);//l38
+Serial.println(\"v\");//l39
+Serial.print(val_3);//l40
+Serial.println(\"v\");//l41
+Serial.println(LED[0]);//l42
+Serial.println(LED[1]);//l43
+Serial.println(LED[2]);//l44
+}//l45",
+			}
+		],
+
+		[
+			"w",
+			"wifi part3 0==49:%s else:%s 1==49:%s else:%s 2==49:%s else:%s",
+			"WIFI_PT3","","","","","","",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"void LEDD(){//LEDD0
+if(LED[0] == 49){{0}}//LEDD1          /*digitial挖空*/
+else{{1}}//LEDD2
+if(LED[1] == 49){{2}}//LEDD3
+else{{3}}//LEDD4
+if(LED[2] == 49){{4}}//LEDD5
+else{{5}}//LEDD6
+}//LEDD7",
+				"work":"",
+				"loop":"",
+			}
+		],
+
 		[
 			"w",
 			"啟動LCD",
