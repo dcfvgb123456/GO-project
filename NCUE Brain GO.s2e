@@ -2,11 +2,11 @@
 	"extensionName": "NCUE Brain GO",
 	"extensionPort": 0,
 	"sort":8,
-	"firmware":"1.2.106",
+	"firmware":"1.2.107",
 	"javascriptURL":"js/NCUE Brain GO.js",
 	"isMakeBlockBoard":false,
 	"blockSpecs": [
-		["h","NCUE Brain GO 主程式 V1.2","runArduino",{"src":"","inc":"#include <MeMCore.h>\n","def":"","setup":"","loop":""}],
+		["h","NCUE Brain GO 主程式 V2.0","runArduino",{"src":"","inc":"#include <MeMCore.h>\n","def":"","setup":"","loop":""}],
 
 		["-"],
 
@@ -22,28 +22,26 @@
 		["B", "%m.Sensor_pin 狀態 ","runDigitalt","紅色 光感測器",
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
 
-    	["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+    		["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
+		["w", "設定 %m.IO_outin 為 %m.IO_Switch","IO", "紅光", "亮",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
-    	["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
+    		["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
 
 		["w", "設定 %d.Servo_Color 角度為 %d.servovalue","runServo", "綠色調角器", 90,
 		{"encode":"{d0}{d1}","setup":"servo_{0}.attach({0});\n","inc":"","def":"Servo servo_{0};\n","work":"servo_{0}.write({1});\n","loop":""}],
 
-		["R", "偵測溫度","getTemp","0",
-		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*5000)/1024)-500)/10\n ","loop":""}],
+		["R", "測得溫度(°C)","getTemp","0",
+		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*50)/10)-500)/10\n ","loop":""}],
 
-    	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
-			{
-				"encode":"{d0}",
-				"setup":"","inc":"",
-				"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n } // 大括號\n",
-				"work":"getDistance({0})",
-				"loop":""
-			}
-		],
+    		["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
+		{"encode":"{d0}",
+		"setup":"","inc":"",
+		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n } // 必要註解(以確保大括號存在)",
+		"work":"getDistance({0})","loop":""}],
 
 		["b","有數據可讀","isAvailable",
 		{"setup":"Serial.begin(9600);\n","inc":"","def":"MeSerial se;\n","work":"se.dataLineAvailable()==0","loop":""}],
@@ -66,31 +64,49 @@
 		["R", "類比訊號ADC %d.PinSel","getAnalog","1",
 		{"encode":"{d0}","setup":"pinMode(14+{0},INPUT);\n","inc":"","def":"","work":"analogRead(14+{0})","loop":""}],
 
-		["R", "一氧化碳濃度(ppm)", "CO_ppm",
-		{"setup":"Serial.begin(9600);\npinMode(15,INPUT);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
+		["R", "測得一氧化碳濃度(ppm)", "CO_ppm",
+		{"setup":"pinMode(15,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
 
 		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
-			{
-			"encode":"{d0}",
-			"setup":"Wire.begin();\nSerial.begin(9600);\n",
-			"inc":"#include \"GroveColorSensor.h\"\n",
-			"def":"int red_d, green_d, blue_d;\nint getRGB(int color) {\nswitch(color) {\ncase 0: return red_d;\ncase 1: return green_d;\ncase 2: return blue_d;\n}\n }",
-			"work":"getRGB({0})",
-			"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
-			}
-		],
+		{
+		"encode":"{d0}",
+		"setup":"Wire.begin();\nSerial.begin(9600);\n",
+		"inc":"#include \"GroveColorSensor.h\"\n",
+		"def":"int red_d, green_d, blue_d;\nint getRGB(int color) {\nswitch(color) {\ncase 0: return red_d;\ncase 1: return green_d;\ncase 2: return blue_d;\n}\n }",
+		"work":"getRGB({0})",
+		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
+		}],
 
-		["R", "PM2.5數值", "PM_Detector",
+		["R", "測得PM2.5數值(μg/m3)", "PM_Detector",
+		{
+		"encode":"{d0}",
+		"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(9,OUTPUT);\n",
+		"inc":"",
+		"def":"int samplingTime = 280;\nint deltaTime = 40;\nint sleepTime = 9680;\nfloat voMeasured = 0;\nfloat calcVoltage = 0;\nfloat dustDensity = 0;",
+		"work":"dustDensity",
+		"loop":"digitalWrite(9,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(9,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage ;\ndustDensity = (dustDensity * 1000);\nSerial.print(dustDensity);\ndelay(100);"
+		}],
+		[
+			"w",
+			"持續偵測電子羅盤",
+			"Compass_initial",
 			{
-			"encode":"{d0}",
-			"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(16,OUTPUT);\n",
-			"inc":"",
-			"def":"int samplingTime = 280;\nint deltaTime = 40;\nint sleepTime = 9680;\nfloat voMeasured = 0;\nfloat calcVoltage = 0;\nfloat dustDensity = 0;",
-			"work":"dustDensity",
-			"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\nSerial.print(dustDensity * 1000);\ndelay(1000);"
+				"setup":"
+  compass.begin();\n  compass.setRange(HMC5883L_RANGE_1_3GA);\n  compass.setMeasurementMode(HMC5883L_CONTINOUS);\n  compass.setDataRate(HMC5883L_DATARATE_30HZ);\n  compass.setSamples(HMC5883L_SAMPLES_8);\n  compass.setOffset(0, 0);\n",
+				"inc":"#include \"HMC5883L.h\"\n",
+				"def":"HMC5883L compass;\n",
+				"work":"  Vector norm = compass.readNormalize();\n  float heading = atan2(norm.YAxis, norm.XAxis);\n  float declinationAngle = (-4.16 + (26.0 / 60.0)) / (180 / M_PI);\n  heading += declinationAngle;\n  if (heading < 0)\n  {\n    heading += 2 * PI;\n  }\n  if (heading > 2 * PI)\n  {\n    heading -= 2 * PI;\n  }\n  float headingDegrees = heading * 180/M_PI;\n\n",
+				"loop":"",
 			}
 		],
-		["w", "啟動LCD", "LCD_initial",
+		["r", "取得羅盤值", "heading",
+		{"setup":"","inc":"","def":"","work":"heading","loop":""}],
+		["r", "取得羅盤角度", "headingDegrees",
+		{"setup":"","inc":"","def":"","work":"headingDegrees","loop":""}],
+		[
+			"w",
+			"啟動LCD",
+			"LCD_initial",
 			{
 				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\n",
 				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
@@ -99,7 +115,13 @@
 				"loop":"lcd.setCursor(0, 0);\nlcd.print(LCDstring);\n\nlcd.setCursor(0, 1);\nlcd.print(&LCDstring[16]);\n",
 			}
 		],
-		["w", "設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString", "LCD_show", 1, 1, " ",
+		[
+			"w",
+			"設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString",
+			"LCD_show",
+			1,
+			1,
+			" ",
 			{
 				"setup":"",
 				"inc":"",
@@ -108,7 +130,10 @@
 				"loop":"",
 			}
 		],
-		["w", "清除LCD內容", "LCD_clear",
+		[
+			"w",
+			"清除LCD內容",
+			"LCD_clear",
 			{
 				"setup":"",
 				"inc":"",
@@ -117,36 +142,49 @@
 				"loop":"",
 			}
 		],
-		["w", "wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行", "setupWifi", " ", " ", "硬體",
+		[
+			"w",
+			"wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行 API=%s",
+			"setupWifi",
+			" ",
+			" ",
+			"硬體",
+			"RIJZQTNUE1RLYEE6",
 			{
 				"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
 				"inc":"#define DEBUG true\n",
-				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = {0}; // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = \"RIJZQTNUE1RLYEE6\"; // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar A = 0;\nchar B = 0;\nchar C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
-String espData(String command, const int timeout, boolean debug) {\n
-String response = \"\";\n
-if({2} == 1)\n
-espSerial.println(command);\n
-else\n
-Serial.println(command);\n
-long int time = millis();\n
-while ((time + timeout) > millis()) {\n
-if({2} == 1)//soft\n
-while (espSerial.available()) {\n
-char c = espSerial.read();\n
-response += c;//soft\n}//soft end
-if({2} == 0)//hard\n
-while (Serial.available()) {\n
-char c = Serial.read();\n
-response += c;//hard\n
-}//hard end\n
-}//while end\n
-return response;\n
-}//espData end\n",
+				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = String({0}); // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = String({3}); // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar port_A = 0;\nchar port_B = 0;\nchar port_C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
+				String espData(String command, const int timeout, boolean debug) {\n
+				String response = \"\";\n
+				if({2} == 1)\n
+					espSerial.println(command);\n
+				else\n
+					Serial.println(command);\n
+				long int time = millis();\n
+				while ((time + timeout) > millis()) {\n
+				if({2} == 1)//soft\n
+					while (espSerial.available()) {\n
+						char c = espSerial.read();\n
+						response += c;//soft\n}// soft end
+						if({2} == 0)//hard\n
+						while (Serial.available()) {\n
+							char c = Serial.read();\n
+							response += c;//hard\n
+						}//hard end\n
+				} // while end\n
+				return response;\n
+				}// espData end\n",
 				"work":"",
-				"loop":"A = 13; B = 12;\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\n",
+				"loop":"port_A = 13; port_B = 12;\npinMode(port_A,OUTPUT);\ndigitalWrite(port_A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(port_A,HIGH);\ndelayMicroseconds(10);\npinMode(port_B,INPUT);\nport_C = pulseIn(port_B,HIGH,30000)/58.0;\n",
 			}
 		],
-		["w", "wifi Field%n Name%s value%n", "setWifiFields", "1", " ", " ",
+		[
+			"w",
+			"wifi Field%n Name%s value%n",
+			"setWifiFields",
+			"1",
+			" ",
+			" ",
 			{
 				"setup":"",
 				"inc":"",
@@ -155,254 +193,211 @@ return response;\n
 				"loop":"sendVal{0} = {2};\nsendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n",
 			}
 		],
-		["w", "送出Field資訊", "sendFieldData",
+		[
+			"w",
+			"送出Field資訊",
+			"sendFieldData",
 			{
 				"setup":"",
 				"inc":"",
 				"def":"//hope for another better software to support extension\n",
 				"work":"",
 				"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
-espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
-espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
-if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
-else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
-espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
-delay(5000);\n",
+				espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
+				espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
+				if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
+				else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
+				espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
+				delay(5000);\n",
 			}
 		],
-		["w", "LED初始設定 資料腳位為%n", "LED_Init", "3",
+		[
+			"w",
+			"wifi part1 SSID:%s 密碼:%s",
+			"WIFI_PT1","","",
 			{
-			    "setup":"pinMode({0},OUTPUT);\ndigitalWrite({0},LOW);\n",
-			    "inc":"#include \"LED_MCU.h\"\n",
-			    "def":"",
-			    "work":"",
-			    "loop":"",
+				"setup":"pinMode(A0, INPUT);//s1
+pinMode(A1, INPUT);//s2
+pinMode(RLED, OUTPUT);//s3
+pinMode(GLED, OUTPUT);//s4
+pinMode(BLED, OUTPUT);//s5
+digitalWrite(RLED, LOW);//s6
+digitalWrite(GLED, LOW);//s7
+digitalWrite(BLED, LOW);//s8
+mySerial.begin(9600);//s9
+Serial.begin(9600);//s10
+mySerial.println(\"AT+CWMODE=1\");//s11
+delay(1000);//s12
+mySerial.println(\"AT+CWJAP_DEF=\\\"{0}\\\",\\\"{1}\\\"\");//s13           //SSID = WIFI名稱 PASSWORD=WIFI密碼
+delay(10000);//s14",
+				"inc":"#include \"DHT.h\"\n",
+				"def":"#define dhtPin 3
+#define dhtType DHT11
+DHT dht(dhtPin, dhtType);
+unsigned char buff[4] ={0,0,0,0};
+unsigned char buss[4] ={0,0,0,0};
+unsigned char temp_H =0;
+unsigned char hum_H =0;
+unsigned char val_H=0;
+unsigned char val_L=0;
+SoftwareSerial mySerial(10, 11); // RX, TX
+int LED[]={0,0,0} ;
+int RLED = 5;
+int GLED = 6;
+int BLED = 7;
+void LEDD();
+char str;",
+				"work":"",
+				"loop":"",
 			}
 		],
-		["w", "單色呼吸 紅%n 綠%n 藍%n 速度%n (0~255)", "Breathing", "10", "200", "43", "5",
+
+		[
+			"w",
+			"wifi part2 IP:%s PORT:%s",
+			"WIFI_PT2","","",
+			{
+				"setup":"mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\\"{0}\\\",{1}\");//s15             //IP=伺服器IP位置 PORT=3000
+delay(1000);//s16
+mySerial.println(\"AT+CIPMODE=1\");//s17
+delay(1000);//s18
+mySerial.println(\"AT+CIPSEND\");//s19
+delay(1000);//s20
+while(mySerial.available()){//s21
+Serial.println(mySerial.available());//s22
+mySerial.read();//s23
+}//s24
+Serial.println(mySerial.available());//s25",
+				"inc":"",
+				"def":"",
+				"work":"",
+				"loop":"float hum = dht.readHumidity();//l1//讀取濕度
+float temp = dht.readTemperature();//l12//讀取攝氏溫度
+temp_H = temp/1;//l3
+hum_H = hum/1;//l4
+buss[0]= temp_H;//l5
+buss[1]= (temp-temp_H)*10;//l6
+buss[2]= hum/1;//l7
+buss[3]= (hum-hum_H)*10;  //l8
+mySerial.begin(9600);//l9
+float val_1=analogRead(A0)*5.02/1013;//l10
+float val_3=analogRead(A1)*5.02/1013;//l11
+val_L=val_3/1;//l12
+buff[0]=val_H;//l13
+buff[1]=(val_1-val_H)*10;//l14
+buff[2]=val_L;//l15
+buff[3]=(val_3-val_L)*10;  //l16
+mySerial.print('S');//l17            /*將資料傳到樹梅派*/
+for(int z = 0;z<4;z++)//l18
+	mySerial.print(buss[z]);//l19
+for(int i = 0;i<4;i++)//l20
+	mySerial.print(buff[i]); //l21
+mySerial.print('E');//l22
+delay(200);//l23                  /*接受樹梅派的資料*/
+while(mySerial.available()>2) {//l24
+str=mySerial.read();//l25
+Serial.print(str);//l26
+LED[0]= str;//l27
+delay(20);//l28
+str=mySerial.read();//l29
+Serial.print(str);//l30
+LED[1]= str;//l31
+delay(20);//l32
+str=mySerial.read();//l33
+Serial.print(str);//l34
+LED[2]= str;//l35
+delay(20);//l36
+LEDD();//l37
+Serial.print(val_1);//l38
+Serial.println(\"v\");//l39
+Serial.print(val_3);//l40
+Serial.println(\"v\");//l41
+Serial.println(LED[0]);//l42
+Serial.println(LED[1]);//l43
+Serial.println(LED[2]);//l44
+}//l45",
+			}
+		],
+
+		[
+			"w",
+			"wifi part3 0==49:%s else:%s 1==49:%s else:%s 2==49:%s else:%s",
+			"WIFI_PT3","","","","","","",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"void LEDD(){//LEDD0
+if(LED[0] == 49){{0}}//LEDD1          /*digitial挖空*/
+else{{1}}//LEDD2
+if(LED[1] == 49){{2}}//LEDD3
+else{{3}}//LEDD4
+if(LED[2] == 49){{4}}//LEDD5
+else{{5}}//LEDD6
+}//LEDD7",
+				"work":"",
+				"loop":"",
+			}
+		],
+		["b", "指紋辨識 腳位(%n, %n)", "fingerPrint", "3", "2",
 		    {
-		        "setup":"",
-		        "inc":"",
-		        "def":"HT45_LED_MCU _ht45_led;",
-		        "work":"",
-		        "loop":"_ht45_led.HT45_breath({0},{1},{2},{3}); // single color breath",
+		        "setup":"
+FP_Serial.begin(9600); //software serial for fingeprint module
+//intial fingerprint module of protocol
+FP_OPEN(FP_Serial);
+if (!FP_boolReturnACK())
+{
+while (1);
+}",
+				"inc":"#include \"FP_command.h\"\n#include <SoftwareSerial.h>\n",
+		        "def":"SoftwareSerial FP_Serial({0}, {1});\nint FP_success = 0;\n",
+		        "work":"(FP_success)",
+		        "loop":"
+unsigned char choose_function;   //for menu handle
+unsigned int loop_time;
+
+FP_LED_open(FP_Serial);
+if (!FP_boolReturnACK())
+{
+FP_LED_close(FP_Serial);
+return;
+}
+
+loop_time = 1;
+while (1)    //waiting timeout
+{
+delay(100);
+FP_CAPTUREFINGER(0, FP_Serial);
+if (FP_boolReturnACK())
+{
+FP_CAPTUREFINGER(0, FP_Serial);
+if (FP_boolReturnACK())
+break;
+}
+
+if (loop_time == 50)
+{
+FP_LED_close(FP_Serial);
+delay(500);
+return;
+}
+loop_time++;
+}
+
+FP_Identify(FP_Serial);
+if (FP_boolReturnACK())
+{
+FP_LED_close(FP_Serial);
+delay(200);
+FP_success = 1 ;
+}
+else
+{
+FP_LED_close(FP_Serial);
+delay(200);
+FP_success = 0 ;
+}"
 		    }
 		],
-		["w", "七彩旋轉", "colorful_rotation",
-			{
-        		"setup":"",
-        		"inc":"",
-        		"def":"
-volatile unsigned char turnning_Index = 0;
-void turnning(unsigned char Speed){//t1
-unsigned char GRB_BUF[3] = {0x00,0x00,0x00};//t2
-unsigned char i,j,temp;//t3
-turnning_Index++;//t4
-if(turnning_Index>2)//t5
-turnning_Index = 0;//t6
-for(j=0;j<__Cascade_All__;j++){//t7
-GRB_BUF[0] = 0x00;//t8
-GRB_BUF[1] = 0x00;//t9
-GRB_BUF[2] = 0x00;//t10
-GRB_BUF[turnning_Index] = 0xff;//t11
-for (i = 0; i < 9; i++){//t12
-_LED_Decode(GRB_BUF[0],GRB_BUF[1], GRB_BUF[2]); //t13
-temp = GRB_BUF[2];//t14
-GRB_BUF[2] = GRB_BUF[1];//t15
-GRB_BUF[1] = GRB_BUF[0];//t16
-GRB_BUF[0] = temp;//t17
-}//t18
-}//t19
-for(i= 0;i<Speed;i++){//t20
-delay(5); //t21
-}//t22
-}//t23",
-        "work":"",
-        "loop":"turnning(10);\n",
-    }
-],
-[
-    "w",
-    "七彩流光",
-    "colorful_streamer",
-    {
-        "setup":"",
-        "inc":"",
-        "def":"
-volatile unsigned char ColorIndex = 0;
-const unsigned char ColorFadeTable[9][3] ={
-{0,240,5},
-{0,180,75},
-{0,75,180},
-{0,5,240},
-{75,0,180},
-{180,0,75},
-{220,0,5},
-{180,75,0},
-{75,180,0},
-};
-void RGB_fade(unsigned char Speed){//f1
-unsigned char i,temp,j,k;//f2
-if(++ColorIndex>8){//f3
-ColorIndex = 0;//f4
-} //f5
-for(j=0;j<__Cascade_All__;j++){//f6
-for(i=0;i<9;i++){//f7
-temp = ColorIndex+i;//f8
-if(temp>8)//f9
-temp = temp-9;//f10
-_LED_Decode(ColorFadeTable[temp][0],ColorFadeTable[temp][1],ColorFadeTable[temp][2]); //f11
-} //f12
-}//f13
-for(k = 0;k<Speed;k++){//f14
-delay(5); //f15
-}//f16
-}//f17
-",
-        "work":"",
-        "loop":"RGB_fade(10);\n",
-    }
-],
-	[
-    "w",
-    "單色流水",
-    "flowing",
-    {
-        "setup":"",
-        "inc":"",
-        "def":"
-const unsigned char ColorFadeTable[__Cascade_All__][3] =
-{//Red,Green,Blue
-{0,240,5}, //color of module #1
-{0,180,75},//color of module #2
-{0,5,240}, //color of module #3
-{75,0,180},//color of module #4
-{180,0,75},//color of module #5
-{220,0,5}, //color of module #6
-{180,75,0},//color of module #7
-{75,180,0},//color of module #8
-};
-volatile unsigned char waterfall_Index = 0;
-volatile unsigned char waterfall_UpDown_flag = 0;
-
-void waterfall(unsigned char Speed){//wf1
-unsigned char i,j,temp = 0,temp1= 0,Cascade_Total = 0;//wf2
-for(j=0;j<__Cascade_All__;j++) {//wf3
-temp = (j<<3)+j;//wf4
-if(waterfall_Index>=(temp+9)){//wf5
-temp = 9;//wf6
-}//wf7
-else if(waterfall_Index>temp){//wf8
-temp = waterfall_Index-temp;//wf9
-}//wf10
-else{//wf11
-temp = 0;//wf12
-} //wf13
-for(i = 0;i<9;i++){//wf14
-if(i < temp){//wf15
-_LED_Decode(ColorFadeTable[j][0],ColorFadeTable[j][1],ColorFadeTable[j][2]);//wf16
-}  //wf17
-else{//wf18
-_LED_Decode(255,255,255);//wf19
-}//wf20
-}  //wf21
-} //wf22
-Cascade_Total = ((__Cascade_All__)<<3)+__Cascade_All__;//wf23
-if(waterfall_UpDown_flag == 0){//wf24
-waterfall_Index++; //wf25
-if(waterfall_Index > Cascade_Total){//wf26
-waterfall_UpDown_flag = 1;//wf27
-waterfall_Index  = Cascade_Total;//wf28
-}//wf29
-}//wf30
-else{//wf31
-if(waterfall_Index >0){//wf32
-waterfall_Index--; //wf33
-}//wf34
-else if(waterfall_Index == 0){  //wf35
-waterfall_UpDown_flag = 0;//wf36
-waterfall_Index   = 0; //wf37
-}//wf38
-}//wf39
-for(i = 0;i<Speed;i++){//wf40
-delay(5);//wf41
-}//wf42
-}//wf43
-",
-        "work":"",
-        "loop":"waterfall(1);\n",
-    }
-],
-[
-    "w",
-    "單色閃爍",
-    "flashing",
-    {
-        "setup":"",
-        "inc":"",
-        "def":"
-volatile unsigned char  twinkle_flag = 0;
-void twinkle(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//t1
-unsigned char i,j,k;//t2
-twinkle_flag = 0;//t3
-for(j = 0;j<2;j++){//t4
-if(twinkle_flag == 1){//t5
-twinkle_flag = 0;//t6
-}//t7
-else{//t8
-twinkle_flag = 1;//t9
-}//t10
-for(k=0;k<__Cascade_All__;k++) {//t11
-for(i = 0;i<9;i++){ //t12
-if(twinkle_flag == 1){//t13
-_LED_Decode(R,G,B); //t14
-}//t15
-else{//t16
-_LED_Decode(0,0,0);//t17
-}//t18
-} //t19
-}//t20
-for(i = 0;i<Speed;i++){//t21
-delay(20);//t22
-}//t23
-}//t24
-}//t25
-",
-        "work":"",
-        "loop":"twinkle(255,0,120,10);\n",
-    }
-],
-[
-    "w",
-    "常亮",
-    "monochrome",
-    {
-        "setup":"
-for(int i = 0; i < 72; i++){
-DisplayTable[i][0] = 0x00;
-DisplayTable[i][1] = 0x00;
-DisplayTable[i][2] = 0xff;
-}",
-        "inc":"",
-        "def":"
-unsigned char DisplayTable[72][3];
-
-void PermanentBright(void){//pb1
-unsigned char i,j;//pb2
-unsigned int temp;//pb3
-for(i=0;i<__Cascade_All__;i++){//pb4
-for(j = 0;j<9;j++){//pb5
-temp = (i<<3)+i+j;//pb6
-_LED_Decode(DisplayTable[temp][0],DisplayTable[temp][1],DisplayTable[temp][2]);//pb7
-} //pb8
-}//pb9
-delay(10);//pb10
-}//pb11
-",
-        "work":"",
-        "loop":"PermanentBright();\n",
-    }
-],
 	],
 
 	"menus": {
@@ -441,8 +436,10 @@ delay(10);//pb10
 		"humiture":["humidity","temperature"],
         "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
         "LED_Color":["紅色LED","黃色LED","綠色LED"],
+	"IO_outin":["紅光","藍光","綠光"],
         "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
         "LED_Switch":["開","關"],
+	"IO_Switch":["亮","不亮"],
         "Servo_Color":["綠色調角器","黃色調角器"],
         "Ultrasonic_Color":["白色超音波","藍色超音波"],
         "servovalue":["0","45","90","135","180"],
@@ -507,6 +504,11 @@ delay(10);//pb10
 		"light sensor on board":6,
 		"開":0,
 		"關":1,
+		"亮":1,
+		"不亮":0,
+		"紅光":2,
+		"藍光":3,
+		"綠光":16,
 		"白色馬達":9,
 		"藍色馬達":10,
                 "綠色調角器":9,

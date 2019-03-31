@@ -1,5 +1,5 @@
-#ifndef _HT45_LED_MCU_H_
-#define _HT45_LED_MCU_H_
+#ifndef HT45_LED_MCU_H
+#define HT45_LED_MCU_H
 
 class HT45_LED_MCU
 {
@@ -9,7 +9,7 @@ public:
     void HT45_breath(unsigned char R, unsigned char G, unsigned char B, unsigned char Speed);
 
 protected:
-    volatile unsigned char LED_MCU_DataPin;
+    volatile unsigned char LED_MCU_DataPin = 3;
     volatile unsigned char LED_MCU_Red, LED_MCU_Green, LED_MCU_Blue;
     volatile unsigned char _Breath_Index = 0;
 private:
@@ -23,15 +23,15 @@ private:
       unsigned char bit6 : 1;
       unsigned char bit7 : 1;
     } HT45_bit_type;
+
     typedef union {
-      HT45_bit_type   bit_var;
+      HT45_bit_type bit_var;
       unsigned char byte_var;
     } HT45_UN;
 
-    HT45_bit_type Breath_Var;
+    HT45_bit_type HT45_Breath_Var;
     volatile HT45_UN HT45_R_Data;
     volatile HT45_UN HT45_G_Data;
     volatile HT45_UN HT45_B_Data;
-
 };
-#endif
+#endif // HT45_LED_MCU_H

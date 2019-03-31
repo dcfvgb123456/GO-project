@@ -4,14 +4,13 @@
 #include <Arduino.h>
 #endif
 
-#include <Wire.h>
 #include "LED_MCU.h"
 
 #define __Cascade_All__ 8
 
-#define HT45_Breath_ColorChange_flag Breath_Var.bit0
-#define HT45_PatternChangeFlag Breath_Var.bit1
-#define HT45_Breath_UpDown_flag Breath_Var.bit2
+#define HT45_Breath_ColorChange_flag HT45_Breath_Var.bit0
+#define HT45_PatternChangeFlag HT45_Breath_Var.bit1
+#define HT45_Breath_UpDown_flag HT45_Breath_Var.bit2
 
 #define  HT45_red_1bit  HT45_R_Data.bit_var.bit0
 #define  HT45_red_2bit  HT45_R_Data.bit_var.bit1
@@ -39,8 +38,6 @@
 #define  HT45_blue_6bit  HT45_B_Data.bit_var.bit5
 #define  HT45_blue_7bit  HT45_B_Data.bit_var.bit6
 #define  HT45_blue_8bit  HT45_B_Data.bit_var.bit7
-
-unsigned char LED_MCU_DataPin = 3;
 
 void HT45_LED_MCU::HT45_LED_Decode(unsigned char R, unsigned char G, unsigned char B) { //1
   unsigned char i = 0;//2

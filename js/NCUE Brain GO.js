@@ -1,5 +1,5 @@
 // NCUE Brain GO.js
-
+/*
 (function(ext) {
   var device = null;
   var _rxBuf = [];
@@ -296,12 +296,14 @@
     startTimer = (new Date().getTime()) / 1000.0;
     responseValue();
   };
+  */
   /*
   ext.getLightOnBoard = function(nextID){
   	var deviceId = 31;
   	getPackage(nextID,deviceId,6);
   }
   */
+  /*
   ext.getButtonOnBoard = function(nextID, status) {
     var deviceId = 35;
     if (typeof status == "string") {
@@ -654,3 +656,4 @@
   var descriptor = {};
   ScratchExtensions.register('NCUE Brain GO', descriptor, ext, { type: 'serial'});
 })({});
+*/
