@@ -318,7 +318,6 @@ Serial.println(LED[2]);//l44
 }//l45",
 			}
 		],
-
 		[
 			"w",
 			"wifi part3 0==49:%s else:%s 1==49:%s else:%s 2==49:%s else:%s",
@@ -397,6 +396,51 @@ delay(200);
 FP_success = 0 ;
 }"
 		    }
+		],
+		[
+			"w", "DHT11溫溼度初始化", "DHT11_Init",
+			{
+				"setup":"Serial.begin(9600);\n",
+				"inc":"#include \"SimpleDHT.h\"\n",
+				"def":"int pinDHT11 = 16; // ADC2\nSimpleDHT11 dht11(pinDHT11);\nbyte temperature = 0;\nbyte humidity = 0;\nint err = SimpleDHTErrSuccess;\n",
+				"work":"",
+				"loop":"
+// start working...
+Serial.println(\"=================================\");
+Serial.println(\"Sample DHT11...\");
+
+// read without samples.
+if ((err = dht11.read(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
+Serial.print(\"Read DHT11 failed, err=\"); Serial.println(err);delay(1000);
+return;
+}
+Serial.print(\"Sample OK: \");
+Serial.print((int)temperature); Serial.print(\" *C, \");
+Serial.print((int)humidity); Serial.println(\" H\");
+
+// DHT11 sampling rate is 1HZ.
+delay(1500);",
+			}
+		],
+		[
+			"r", "DHT11偵測溫度", "DHT11_Temp",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"((int)temperature)",
+				"loop":"",
+			}
+		],
+		[
+			"r", "DHT11偵測濕度", "DHT11_Humi",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"((int)humidity)",
+				"loop":"",
+			}
 		],
 	],
 
