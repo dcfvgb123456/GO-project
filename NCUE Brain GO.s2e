@@ -2,11 +2,11 @@
 	"extensionName": "NCUE Brain GO",
 	"extensionPort": 0,
 	"sort":8,
-	"firmware":"1.2.106",
+	"firmware":"1.2.107",
 	"javascriptURL":"js/NCUE Brain GO.js",
 	"isMakeBlockBoard":false,
 	"blockSpecs": [
-		["h","NCUE Brain GO 主程式 V1.2","runArduino",{"src":"","inc":"#include <MeMCore.h>\n","def":"","setup":"","loop":""}],
+		["h","NCUE Brain GO 主程式 V2.0","runArduino",{"src":"","inc":"#include <MeMCore.h>\n","def":"","setup":"","loop":""}],
 
 		["-"],
 
@@ -22,24 +22,25 @@
 		["B", "%m.Sensor_pin 狀態 ","runDigitalt","紅色 光感測器",
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
 
-    	["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+    		["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
+		["w", "設定 %m.IO_outin 為 %m.IO_Switch","IO", "紅光", "亮",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
-    	["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
+    		["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
 
 		["w", "設定 %d.Servo_Color 角度為 %d.servovalue","runServo", "綠色調角器", 90,
 		{"encode":"{d0}{d1}","setup":"servo_{0}.attach({0});\n","inc":"","def":"Servo servo_{0};\n","work":"servo_{0}.write({1});\n","loop":""}],
 
-		["R", "偵測溫度","getTemp","0",
-		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*5000)/1024)-500)/10\n ","loop":""}],
+		["R", "測得溫度(°C)","getTemp","0",
+		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*50)/10)-500)/10\n ","loop":""}],
 
-    	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
+    		["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
 		{"encode":"{d0}",
 		"setup":"","inc":"",
-		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n }
-		\n",
+		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n } // 必要註解(以確保大括號存在)",
 		"work":"getDistance({0})","loop":""}],
 
 		["b","有數據可讀","isAvailable",
@@ -63,8 +64,8 @@
 		["R", "類比訊號ADC %d.PinSel","getAnalog","1",
 		{"encode":"{d0}","setup":"pinMode(14+{0},INPUT);\n","inc":"","def":"","work":"analogRead(14+{0})","loop":""}],
 
-		["R", "一氧化碳濃度(ppm)", "CO_ppm",
-		{"setup":"Serial.begin(9600);\npinMode(15,INPUT);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
+		["R", "測得一氧化碳濃度(ppm)", "CO_ppm",
+		{"setup":"pinMode(15,INPUT);\nSerial.begin(9600);\n","inc":"#include \"MQ7.h\"\n","def":"MQ7 mq7(analogRead(15),5.0);\n","work":"mq7.getPPM()","loop":""}],
 
 		["R", "RGB偵測器 %m.RGB_detector 數值", "RGBDetector",  "偵測紅色",
 		{
@@ -76,16 +77,140 @@
 		"loop":"GroveColorSensor colorSensor;\ncolorSensor.ledStatus = 1;\ncolorSensor.readRGB(&red_d, &green_d, &blue_d);\nSerial.println(getRGB({0}),DEC);\ndelay(300);\n"
 		}],
 
-		["R", "PM2.5數值", "PM_Detector",
+		["R", "測得PM2.5數值(μg/m3)", "PM_Detector",
 		{
 		"encode":"{d0}",
-		"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(16,OUTPUT);\n",
+		"setup":"Serial.begin(9600);\npinMode(15,INPUT);\npinMode(9,OUTPUT);\n",
 		"inc":"",
 		"def":"int samplingTime = 280;\nint deltaTime = 40;\nint sleepTime = 9680;\nfloat voMeasured = 0;\nfloat calcVoltage = 0;\nfloat dustDensity = 0;",
 		"work":"dustDensity",
-		"loop":"digitalWrite(16,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(16,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage - 0.1;\nSerial.print(dustDensity * 1000);\ndelay(1000);"
+		"loop":"digitalWrite(9,LOW);\ndelayMicroseconds(samplingTime);\nvoMeasured = analogRead(15);\ndelayMicroseconds(deltaTime);\ndigitalWrite(9,HIGH);\ndelayMicroseconds(sleepTime);\ncalcVoltage = voMeasured * (5.0 / 1024.0);\ndustDensity = 0.17 * calcVoltage ;\ndustDensity = (dustDensity * 1000);\nSerial.print(dustDensity);\ndelay(100);"
 		}],
-
+		[
+			"w",
+			"持續偵測電子羅盤",
+			"Compass_initial",
+			{
+				"setup":"
+  compass.begin();\n  compass.setRange(HMC5883L_RANGE_1_3GA);\n  compass.setMeasurementMode(HMC5883L_CONTINOUS);\n  compass.setDataRate(HMC5883L_DATARATE_30HZ);\n  compass.setSamples(HMC5883L_SAMPLES_8);\n  compass.setOffset(0, 0);\n",
+				"inc":"#include \"HMC5883L.h\"\n",
+				"def":"HMC5883L compass;\n",
+				"work":"  Vector norm = compass.readNormalize();\n  float heading = atan2(norm.YAxis, norm.XAxis);\n  float declinationAngle = (-4.16 + (26.0 / 60.0)) / (180 / M_PI);\n  heading += declinationAngle;\n  if (heading < 0)\n  {\n    heading += 2 * PI;\n  }\n  if (heading > 2 * PI)\n  {\n    heading -= 2 * PI;\n  }\n  float headingDegrees = heading * 180/M_PI;\n\n",
+				"loop":"",
+			}
+		],
+		["r", "取得羅盤值", "heading",
+		{"setup":"","inc":"","def":"","work":"heading","loop":""}],
+		["r", "取得羅盤角度", "headingDegrees",
+		{"setup":"","inc":"","def":"","work":"headingDegrees","loop":""}],
+		[
+			"w",
+			"啟動LCD",
+			"LCD_initial",
+			{
+				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\n",
+				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
+				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nchar LCDstring[32] = {' '};\nString str=\"\";\n\nvoid setLCD(int row, int col) {\nint index = row * 16 + col- 17;\nfor(int i=0; index+i < 32 && i < str.length(); i++)\nLCDstring[index+i]=str[i];\n }\n",
+				"work":"",
+				"loop":"lcd.setCursor(0, 0);\nlcd.print(LCDstring);\n\nlcd.setCursor(0, 1);\nlcd.print(&LCDstring[16]);\n",
+			}
+		],
+		[
+			"w",
+			"設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString",
+			"LCD_show",
+			1,
+			1,
+			" ",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"str = String({2});\nsetLCD({0}, {1});\n",
+				"loop":"",
+			}
+		],
+		[
+			"w",
+			"清除LCD內容",
+			"LCD_clear",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"void str_clear() {\nfor(int i = 0; i < 32; ++i)\nLCDstring[i] = ' ';\n} \n",
+				"work":"str_clear();\nlcd.clear();\n",
+				"loop":"",
+			}
+		],
+		[
+			"w",
+			"wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行 API=%s",
+			"setupWifi",
+			" ",
+			" ",
+			"硬體",
+			"RIJZQTNUE1RLYEE6",
+			{
+				"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
+				"inc":"#define DEBUG true\n",
+				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = String({0}); // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = String({3}); // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar port_A = 0;\nchar port_B = 0;\nchar port_C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
+				String espData(String command, const int timeout, boolean debug) {\n
+				String response = \"\";\n
+				if({2} == 1)\n
+					espSerial.println(command);\n
+				else\n
+					Serial.println(command);\n
+				long int time = millis();\n
+				while ((time + timeout) > millis()) {\n
+				if({2} == 1)//soft\n
+					while (espSerial.available()) {\n
+						char c = espSerial.read();\n
+						response += c;//soft\n}// soft end
+						if({2} == 0)//hard\n
+						while (Serial.available()) {\n
+							char c = Serial.read();\n
+							response += c;//hard\n
+						}//hard end\n
+				} // while end\n
+				return response;\n
+				}// espData end\n",
+				"work":"",
+				"loop":"port_A = 13; port_B = 12;\npinMode(port_A,OUTPUT);\ndigitalWrite(port_A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(port_A,HIGH);\ndelayMicroseconds(10);\npinMode(port_B,INPUT);\nport_C = pulseIn(port_B,HIGH,30000)/58.0;\n",
+			}
+		],
+		[
+			"w",
+			"wifi Field%n Name%s value%n",
+			"setWifiFields",
+			"1",
+			" ",
+			" ",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"int sendVal{0};\nString sendData = \"GET /update?api_key=\" + myAPI;\n",
+				"work":"",
+				"loop":"sendVal{0} = {2};\nsendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n",
+			}
+		],
+		[
+			"w",
+			"送出Field資訊",
+			"sendFieldData",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"//hope for another better software to support extension\n",
+				"work":"",
+				"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
+				espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
+				espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
+				if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
+				else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
+				espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
+				delay(5000);\n",
+			}
+		],
 		[
 			"w",
 			"wifi part1 SSID:%s 密碼:%s",
@@ -193,7 +318,6 @@ Serial.println(LED[2]);//l44
 }//l45",
 			}
 		],
-
 		[
 			"w",
 			"wifi part3 0==49:%s else:%s 1==49:%s else:%s 2==49:%s else:%s",
@@ -213,595 +337,174 @@ else{{5}}//LEDD6
 				"loop":"",
 			}
 		],
+		["b", "指紋辨識 腳位(%n, %n)", "fingerPrint", "3", "2",
+		    {
+		        "setup":"
+FP_Serial.begin(9600); //software serial for fingeprint module
+//intial fingerprint module of protocol
+FP_OPEN(FP_Serial);
+if (!FP_boolReturnACK())
+{
+while (1);
+}",
+				"inc":"#include \"FP_command.h\"\n#include <SoftwareSerial.h>\n",
+		        "def":"SoftwareSerial FP_Serial({0}, {1});\nint FP_success = 0;\n",
+		        "work":"(FP_success)",
+		        "loop":"
+unsigned char choose_function;   //for menu handle
+unsigned int loop_time;
 
+FP_LED_open(FP_Serial);
+if (!FP_boolReturnACK())
+{
+FP_LED_close(FP_Serial);
+return;
+}
+
+loop_time = 1;
+while (1)    //waiting timeout
+{
+delay(100);
+FP_CAPTUREFINGER(0, FP_Serial);
+if (FP_boolReturnACK())
+{
+FP_CAPTUREFINGER(0, FP_Serial);
+if (FP_boolReturnACK())
+break;
+}
+
+if (loop_time == 50)
+{
+FP_LED_close(FP_Serial);
+delay(500);
+return;
+}
+loop_time++;
+}
+
+FP_Identify(FP_Serial);
+if (FP_boolReturnACK())
+{
+FP_LED_close(FP_Serial);
+delay(200);
+FP_success = 1 ;
+}
+else
+{
+FP_LED_close(FP_Serial);
+delay(200);
+FP_success = 0 ;
+}"
+		    }
+		],
 		[
-			"w",
-			"啟動LCD",
-			"LCD_initial",
+			"w", "DHT11溫溼度初始化", "DHT11_Init",
 			{
-				"setup":"lcd.begin(16, 2);\nlcd.backlight();\nlcd.clear();\n",
-				"inc":"#include \"LiquidCrystal_I2C.h\"\n",
-				"def":"LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);\nchar LCDstring[32] = {' '};\nString str=\"\";\n\nvoid setLCD(int row, int col) {\nint index = row * 16 + col- 17;\nfor(int i=0; index+i < 32 && i < str.length(); i++)\nLCDstring[index+i]=str[i];\n }\n",
+				"setup":"Serial.begin(9600);\n",
+				"inc":"#include \"SimpleDHT.h\"\n",
+				"def":"int pinDHT11 = 16; // ADC2\nSimpleDHT11 dht11(pinDHT11);\nbyte temperature = 0;\nbyte humidity = 0;\nint err = SimpleDHTErrSuccess;\n",
 				"work":"",
-				"loop":"lcd.setCursor(0, 0);\nlcd.print(LCDstring);\n\nlcd.setCursor(0, 1);\nlcd.print(&LCDstring[16]);\n",
+				"loop":"
+// start working...
+Serial.println(\"=================================\");
+Serial.println(\"Sample DHT11...\");
+
+// read without samples.
+if ((err = dht11.read(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {
+Serial.print(\"Read DHT11 failed, err=\"); Serial.println(err);delay(1000);
+return;
+}
+Serial.print(\"Sample OK: \");
+Serial.print((int)temperature); Serial.print(\" *C, \");
+Serial.print((int)humidity); Serial.println(\" H\");
+
+// DHT11 sampling rate is 1HZ.
+delay(1500);",
 			}
 		],
 		[
-			"w",
-			"設定LCD %d.LCDrow 列 第 %d.LCDcol 個字 顯示 %s.LCDString",
-			"LCD_show",
-			1,
-			1,
-			" ",
+			"r", "DHT11偵測溫度", "DHT11_Temp",
 			{
 				"setup":"",
 				"inc":"",
 				"def":"",
-				"work":"str = String({2});\nsetLCD({0}, {1});\n",
+				"work":"((int)temperature)",
 				"loop":"",
 			}
 		],
 		[
-			"w",
-			"清除LCD內容",
-			"LCD_clear",
+			"r", "DHT11偵測濕度", "DHT11_Humi",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"void str_clear() {\nfor(int i = 0; i < 32; ++i)\nLCDstring[i] = ' ';\n} \n",
-				"work":"str_clear();\nlcd.clear();\n",
+				"def":"",
+				"work":"((int)humidity)",
 				"loop":"",
 			}
 		],
 		[
-			"w",
-			"wifi連線:SSID=%s Password=%s 以 %m.WifiHorS 運行",
-			"setupWifi",
-			"",
-			"",
-			"硬體",
+			"w", "GPS 初始化", "TinyGPS_Init",
 			{
-				"setup":"Serial.begin(9600);\nespSerial.begin(9600);\nespData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\nespData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\nespData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\ndelay(1000);\n",
-				"inc":"#define DEBUG true\n",
-				"def":"String str_CWJAP=\"AT+CWJAP=\";\nString DQ = String('\"');\nString mySSID = {0}; // WiFi SSID\nString myPWD = String({1}); // WiFi Password\nString myAPI = \"RIJZQTNUE1RLYEE6\"; // API Key\nString myHOST = \"api.thingspeak.com\";\nString myPORT = \"80\";\nint trig;\nchar A = 0;\nchar B = 0;\nchar C = 0;\nint Hard_or_Soft = {2};\nSoftwareSerial espSerial(3,2);\n
-String espData(String command, const int timeout, boolean debug) {\n
-String response = \"\";\n
-if({2} == 1)\n
-	espSerial.println(command);\n
-else\n
-	Serial.println(command);\n
-long int time = millis();\n
-while ((time + timeout) > millis()) {\n
-if({2} == 1)//soft\n
-	while (espSerial.available()) {\n
-	char c = espSerial.read();\n
-	response += c;//soft\n}//soft end
-if({2} == 0)//hard\n
-	while (Serial.available()) {\n
-	char c = Serial.read();\n
-	response += c;//hard\n
-}//hard end\n
-}//while end\n
-
-return response;\n
-}//espData end\n",
+				"setup":"serial_collection.begin(38400);\n",
+				"inc":"#include<TinyGPS++.h>\n",
+				"def":"SoftwareSerial serial_collection(2,3); //Rx,Tx\nTinyGPSPlus gps;\n",
 				"work":"",
-				"loop":"A = 13; B = 12;\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\n",
+				"loop":"while (serial_collection.available()){\ngps.encode(serial_collection.read());\n}\n",
 			}
 		],
 		[
-			"w",
-			"wifi Field%n Name%s value%n",
-			"setWifiFields",
-			"1",
-			"",
-			"",
+			"r", "GPS 衛星數量", "TinyGPS_satellites",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"int sendVal{0};\nString sendData = \"GET /update?api_key=\" + myAPI;\n",
-				"work":"",
-				"loop":"sendVal{0} = {2};\nsendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n",
-			}
-		],
-		[
-			"w",
-			"送出Field資訊",
-			"sendFieldData",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"//hope for another better software to support extension\n",
-				"work":"",
-				"loop":"espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
-espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
-espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
-if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
-else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
-espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
-delay(5000);\n",
-			}
-		],
-		[
-			"w",
-			"LED初始設定",
-			"LED_Init",
-			{
-				"setup":"pinMode(DataPin,OUTPUT);\ndigitalWrite(DataPin,LOW);\n",
-				"inc":"",
-				"def":"#define __Cascade_All__ 8\n
-volatile unsigned char DataPin = 3;\n
-void LED_Decode(unsigned char R,unsigned char G,unsigned char B){//1
-unsigned char i = 0;//2
-unsigned char Data_temp = 0;//3
-noInterrupts();//4
-for(i = 0;i<8;i++){//5
-Data_temp = B & 0x80;//6
-digitalWrite(DataPin,HIGH);//7
-if(Data_temp != 0x80)//8
-  digitalWrite(DataPin,LOW);//9
-else//10
-  digitalWrite(DataPin,HIGH);//11
-B = B <<1;//12
-digitalWrite(DataPin,LOW);//13
-}//14
-for(i = 0;i<8;i++){//15
-Data_temp = R & 0x80;//16
-digitalWrite(DataPin,HIGH);//17
-if(Data_temp != 0x80)//18
-  digitalWrite(DataPin,LOW);//19
-else//20
-  digitalWrite(DataPin,HIGH);//21
-R = R <<1;//22
-digitalWrite(DataPin,LOW);//23
-}//24
-for(i = 0;i<8;i++){//25
-Data_temp = G & 0x80;//26
-digitalWrite(DataPin,HIGH);//27
-if(Data_temp != 0x80)//28
-  digitalWrite(DataPin,LOW);//29
-else//30
-  digitalWrite(DataPin,HIGH);//31
-G = G <<1;//32
-digitalWrite(DataPin,LOW);//33
-}//34
-interrupts();//35
-}//36",
-				"work":"",
+				"def":"",
+				"work":"((int)gps.satellites.value())",
 				"loop":"",
 			}
 		],
 		[
-			"w",
-			"呼吸",
-			"Breathing",
+			"r", "GPS 緯度", "TinyGPS_location_lat",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"
-typedef struct{
-unsigned char bit0 : 1;
-unsigned char bit1 : 1;
-unsigned char bit2 : 1;
-unsigned char bit3 : 1;
-unsigned char bit4 : 1;
-unsigned char bit5 : 1;
-unsigned char bit6 : 1;
-unsigned char bit7 : 1;
-}bit_type;
-typedef union{
-bit_type   bit_var;
-unsigned char byte_var;
-}UN;
-volatile unsigned char Red,Green,Blue;
-bit_type Breath_Var;
-#define Breath_ColorChange_flag Breath_Var.bit0
-#define PatternChangeFlag Breath_Var.bit1
-#define Breath_UpDown_flag Breath_Var.bit2
-
-volatile UN R_Data;
-#define  red_1bit  R_Data.bit_var.bit0
-#define  red_2bit  R_Data.bit_var.bit1
-#define  red_3bit  R_Data.bit_var.bit2
-#define  red_4bit  R_Data.bit_var.bit3
-#define  red_5bit  R_Data.bit_var.bit4
-#define  red_6bit  R_Data.bit_var.bit5
-#define  red_7bit  R_Data.bit_var.bit6
-#define  red_8bit  R_Data.bit_var.bit7
-
-volatile UN G_Data;
-#define  green_1bit  G_Data.bit_var.bit0
-#define  green_2bit  G_Data.bit_var.bit1
-#define  green_3bit  G_Data.bit_var.bit2
-#define  green_4bit  G_Data.bit_var.bit3
-#define  green_5bit  G_Data.bit_var.bit4
-#define  green_6bit  G_Data.bit_var.bit5
-#define  green_7bit  G_Data.bit_var.bit6
-#define  green_8bit  G_Data.bit_var.bit7
-
-volatile UN B_Data;
-#define  blue_1bit  B_Data.bit_var.bit0
-#define  blue_2bit  B_Data.bit_var.bit1
-#define  blue_3bit  B_Data.bit_var.bit2
-#define  blue_4bit  B_Data.bit_var.bit3
-#define  blue_5bit  B_Data.bit_var.bit4
-#define  blue_6bit  B_Data.bit_var.bit5
-#define  blue_7bit  B_Data.bit_var.bit6
-#define  blue_8bit  B_Data.bit_var.bit7
-volatile unsigned char Breath_Index = 0;
-
-void Breath_adjust(unsigned char UpDown,unsigned char R_Index,unsigned char G_Index,unsigned char B_Index){//ba1
-unsigned char i = 0,j;//ba2
-if(UpDown ==1){ //up//ba3
-Red +=  R_Index;//ba4
-Green += G_Index;//ba5
-Blue += B_Index; //ba6
-}//ba7
-else if(UpDown ==0){//down//ba8
-Red -=  R_Index;//ba9
-Green -= G_Index;//ba10
-Blue -= B_Index;  //ba11
-}//ba12
-if(Breath_Index == 0){//ba13
-for(j=0;j<__Cascade_All__;j++){//ba14
-for(i=0;i<9;i++){//ba15
-LED_Decode(Red,Green,Blue); //ba16
-} //ba17
-}  //ba18
-}//ba19
-Breath_Index++;//ba20
-if(Breath_Index>2){//adjust berath step//ba21
-Breath_Index = 0; //ba22
-}//ba23
-}//ba24
-
-void breath(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//b1
-unsigned char i,j;//b2
-unsigned char i1,i2,i3,i4,i5,i6,i7,i8;//b3
-Breath_UpDown_flag = 1;//b4
-R_Data.byte_var = R;//b5
-G_Data.byte_var = G;//b6
-B_Data.byte_var = B;//b7
-for(i = 0;i<(Speed<<1);i++)  {//b8
-delay(8);//b9
-}//b10
-Red = 0;//b11
-Green = 0;//b12
-Blue = 0; //b13
-for(j = 0;j<2;j++){//b14
-for(i1 = 0;i1 < 1;i1++){//b15
-for(i2 = 0;i2 < 2;i2++){//b16
-for(i3 = 0;i3 < 2;i3++){//b17
-for(i4 = 0;i4 < 2;i4++){//b18
-for(i5 = 0;i5 < 2;i5++){//b19
-for(i6 = 0;i6 < 2;i6++){//b20
-for(i7 = 0;i7 < 2;i7++){//b21
-for(i8 = 0;i8 < 2;i8++){//b22
-if(PatternChangeFlag == 1){//b23
-i1 = 2;//b24
-i2 = 2;//b25
-i3 = 2;//b26
-i4 = 2;//b27
-i5 = 2;//b28
-i6 = 2;//b29
-i7 = 2;//b30
-i8 = 2;//b31
-break;  //b32
-}//b33
-Breath_adjust(Breath_UpDown_flag,red_8bit,green_8bit,blue_8bit);//b34
-if(Breath_UpDown_flag ==1)//b35
-	delay(Speed+4);//b36
-else//b37
-	delay(Speed+1);//b38
-}  //b39
-Breath_adjust(Breath_UpDown_flag,red_7bit,green_7bit,blue_7bit);//b40
-if(Breath_UpDown_flag ==1)//b41
-	delay(Speed+3);//b42
-else//b43
-	delay(Speed+1);//b44
-}//b45
-Breath_adjust(Breath_UpDown_flag,red_6bit,green_6bit,blue_6bit);//b46
-if(Breath_UpDown_flag ==1)//b47
-	delay(Speed+2);//b48
-else//b49
-	delay(Speed+1);//b50
-}//b51
-Breath_adjust(Breath_UpDown_flag,red_5bit,green_5bit,blue_5bit);//b52
-if(Breath_UpDown_flag ==1)//b53
-	delay(Speed+1);//b54
-else//b55
-	delay(Speed+1);//b56
-}//b57
-Breath_adjust(Breath_UpDown_flag,red_4bit,green_4bit,blue_4bit);//b58
-if(Breath_UpDown_flag ==1)//b59
-	delay(Speed+1);//b60
-else//b61
-	delay(Speed+2);//b62
-}//b63
-Breath_adjust(Breath_UpDown_flag,red_3bit,green_3bit,blue_3bit);//b64
-if(Breath_UpDown_flag ==1)//b65
-	delay(Speed+1);//b66
-else//b67
-	delay(Speed+2); //b68
-}//b69
-Breath_adjust(Breath_UpDown_flag,red_2bit,green_2bit,blue_2bit);//b70
-if(Breath_UpDown_flag ==1)//b71
-	delay(Speed);//b72
-else//b73
-	delay(Speed+2);   //b74
-}//b75
-Breath_adjust(Breath_UpDown_flag,red_1bit,green_1bit,blue_1bit);//b76
-if(Breath_UpDown_flag ==1)//b77
-	delay(Speed);//b78
-else//b79
-	delay(Speed+3);//b80
-}//b81
-Breath_UpDown_flag++;//b82
-}//b83
-}//b84
-",
-				"work":"",
-				"loop":"breath(125,255,100,1);\n",
+				"def":"",
+				"work":"(gps.location.lat())",
+				"loop":"",
 			}
 		],
 		[
-			"w",
-			"colorful_rotation",
-			"colorful_rotation",
+			"r", "GPS 經度", "TinyGPS_location_lng",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"
-volatile unsigned char turnning_Index = 0;
-void turnning(unsigned char Speed){//t1
-unsigned char GRB_BUF[3] = {0x00,0x00,0x00};//t2
-unsigned char i,j,temp;//t3
-turnning_Index++;//t4
-if(turnning_Index>2)//t5
-	turnning_Index = 0;//t6
-for(j=0;j<__Cascade_All__;j++){//t7
-GRB_BUF[0] = 0x00;//t8
-GRB_BUF[1] = 0x00;//t9
-GRB_BUF[2] = 0x00;//t10
-GRB_BUF[turnning_Index] = 0xff;//t11
-for (i = 0; i < 9; i++){//t12
-LED_Decode(GRB_BUF[0],GRB_BUF[1], GRB_BUF[2]); //t13
-temp = GRB_BUF[2];//t14
-GRB_BUF[2] = GRB_BUF[1];//t15
-GRB_BUF[1] = GRB_BUF[0];//t16
-GRB_BUF[0] = temp;//t17
-}//t18
-}//t19
-for(i= 0;i<Speed;i++){//t20
-delay(5); //t21
-}//t22
-}//t23",
-				"work":"",
-				"loop":"turnning(10);\n",
+				"def":"",
+				"work":"(gps.location.lng())",
+				"loop":"",
 			}
 		],
 		[
-			"w",
-			"colorful_streamer",
-			"colorful_streamer",
+			"r", "GPS 速度", "TinyGPS_speed",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"
-volatile unsigned char ColorIndex = 0;
-const unsigned char ColorFadeTable[9][3] ={
-{0,240,5},
-{0,180,75},
-{0,75,180},
-{0,5,240},
-{75,0,180},
-{180,0,75},
-{220,0,5},
-{180,75,0},
-{75,180,0},
-};
-void RGB_fade(unsigned char Speed){//f1
-unsigned char i,temp,j,k;//f2
-if(++ColorIndex>8){//f3
-ColorIndex = 0;//f4
-} //f5
-for(j=0;j<__Cascade_All__;j++){//f6
-for(i=0;i<9;i++){//f7
-temp = ColorIndex+i;//f8
-if(temp>8)//f9
-	temp = temp-9;//f10
-LED_Decode(ColorFadeTable[temp][0],ColorFadeTable[temp][1],ColorFadeTable[temp][2]); //f11
-} //f12
-}//f13
-for(k = 0;k<Speed;k++){//f14
-delay(5); //f15
-}//f16
-}//f17
-",
-				"work":"",
-				"loop":"RGB_fade(10);\n",
+				"def":"",
+				"work":"((int)gps.speed.mph())",
+				"loop":"",
 			}
 		],
 		[
-			"w",
-			"flashing",
-			"flashing",
+			"r", "GPS 海拔高度", "TinyGPS_altitude",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"
-volatile unsigned char  twinkle_flag = 0;
-void twinkle(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//t1
-unsigned char i,j,k;//t2
-twinkle_flag = 0;//t3
-for(j = 0;j<2;j++){//t4
-if(twinkle_flag == 1){//t5
-twinkle_flag = 0;//t6
-}//t7
-else{//t8
-twinkle_flag = 1;//t9
-}//t10
-for(k=0;k<__Cascade_All__;k++) {//t11
-for(i = 0;i<9;i++){ //t12
-if(twinkle_flag == 1){//t13
-LED_Decode(R,G,B); //t14
-}//t15
-else{//t16
-LED_Decode(0,0,0);//t17
-}//t18
-} //t19
-}//t20
-for(i = 0;i<Speed;i++){//t21
-delay(20);//t22
-}//t23
-}//t24
-}//t25
-",
-				"work":"",
-				"loop":"twinkle(255,0,120,10);\n",
-			}
-		],
-		[
-			"w",
-			"flowing",
-			"flowing",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"
-const unsigned char ColorFadeTable[__Cascade_All__][3] =
-{//Red,Green,Blue
-{0,240,5}, //color of module #1
-{0,180,75},//color of module #2
-{0,5,240}, //color of module #3
-{75,0,180},//color of module #4
-{180,0,75},//color of module #5
-{220,0,5}, //color of module #6
-{180,75,0},//color of module #7
-{75,180,0},//color of module #8
-};
-volatile unsigned char waterfall_Index = 0;
-volatile unsigned char waterfall_UpDown_flag = 0;
-
-void waterfall(unsigned char Speed){//wf1
-unsigned char i,j,temp = 0,temp1= 0,Cascade_Total = 0;//wf2
-for(j=0;j<__Cascade_All__;j++) {//wf3
-temp = (j<<3)+j;//wf4
-if(waterfall_Index>=(temp+9)){//wf5
-temp = 9;//wf6
-}//wf7
-else if(waterfall_Index>temp){//wf8
-temp = waterfall_Index-temp;//wf9
-}//wf10
-else{//wf11
-temp = 0;//wf12
-} //wf13
-for(i = 0;i<9;i++){//wf14
-if(i < temp){//wf15
-LED_Decode(ColorFadeTable[j][0],ColorFadeTable[j][1],ColorFadeTable[j][2]);//wf16
-}  //wf17
-else{//wf18
-LED_Decode(255,255,255);//wf19
-}//wf20
-}  //wf21
-} //wf22
-Cascade_Total = ((__Cascade_All__)<<3)+__Cascade_All__;//wf23
-if(waterfall_UpDown_flag == 0){//wf24
-waterfall_Index++; //wf25
-if(waterfall_Index > Cascade_Total){//wf26
-waterfall_UpDown_flag = 1;//wf27
-waterfall_Index  = Cascade_Total;//wf28
-}//wf29
-}//wf30
-else{//wf31
-if(waterfall_Index >0){//wf32
-waterfall_Index--; //wf33
-}//wf34
-else if(waterfall_Index == 0){  //wf35
-waterfall_UpDown_flag = 0;//wf36
-waterfall_Index   = 0; //wf37
-}//wf38
-}//wf39
-for(i = 0;i<Speed;i++){//wf40
-delay(5);//wf41
-}//wf42
-}//wf43
-",
-				"work":"",
-				"loop":"waterfall(1);\n",
-			}
-		],
-		[
-			"w",
-			"flashing",
-			"flashing",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"
-volatile unsigned char  twinkle_flag = 0;
-void twinkle(unsigned char R,unsigned char G,unsigned char B,unsigned char Speed){//t1
-unsigned char i,j,k;//t2
-twinkle_flag = 0;//t3
-for(j = 0;j<2;j++){//t4
-if(twinkle_flag == 1){//t5
-twinkle_flag = 0;//t6
-}//t7
-else{//t8
-twinkle_flag = 1;//t9
-}//t10
-for(k=0;k<__Cascade_All__;k++) {//t11
-for(i = 0;i<9;i++){ //t12
-if(twinkle_flag == 1){//t13
-LED_Decode(R,G,B); //t14
-}//t15
-else{//t16
-LED_Decode(0,0,0);//t17
-}//t18
-} //t19
-}//t20
-for(i = 0;i<Speed;i++){//t21
-delay(20);//t22
-}//t23
-}//t24
-}//t25
-",
-				"work":"",
-				"loop":"twinkle(255,0,120,10);\n",
-			}
-		],
-		[
-			"w",
-			"monochrome",
-			"monochrome",
-			{
-				"setup":"
-for(int i = 0; i < 72; i++){
-DisplayTable[i][0] = 0x00;
-DisplayTable[i][1] = 0x00;
-DisplayTable[i][2] = 0xff;
-}",
-				"inc":"",
-				"def":"
-unsigned char DisplayTable[72][3];
-
-void PermanentBright(void){//pb1
-unsigned char i,j;//pb2
-unsigned int temp;//pb3
-for(i=0;i<__Cascade_All__;i++){//pb4
-for(j = 0;j<9;j++){//pb5
-temp = (i<<3)+i+j;//pb6
-LED_Decode(DisplayTable[temp][0],DisplayTable[temp][1],DisplayTable[temp][2]);//pb7
-} //pb8
-}//pb9
-delay(10);//pb10
-}//pb11
-",
-				"work":"",
-				"loop":"PermanentBright();\n",
+				"def":"",
+				"work":"(gps.altitude.feet())",
+				"loop":"",
 			}
 		],
 	],
+
+
 
 	"menus": {
 		"yellowPorts":["Port1","Port2","Port3","Port4"],
@@ -839,8 +542,10 @@ delay(10);//pb10
 		"humiture":["humidity","temperature"],
         "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
         "LED_Color":["紅色LED","黃色LED","綠色LED"],
+	"IO_outin":["紅光","藍光","綠光"],
         "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
         "LED_Switch":["開","關"],
+	"IO_Switch":["亮","不亮"],
         "Servo_Color":["綠色調角器","黃色調角器"],
         "Ultrasonic_Color":["白色超音波","藍色超音波"],
         "servovalue":["0","45","90","135","180"],
@@ -905,6 +610,11 @@ delay(10);//pb10
 		"light sensor on board":6,
 		"開":0,
 		"關":1,
+		"亮":1,
+		"不亮":0,
+		"紅光":2,
+		"藍光":3,
+		"綠光":16,
 		"白色馬達":9,
 		"藍色馬達":10,
                 "綠色調角器":9,
