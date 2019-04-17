@@ -32,7 +32,13 @@
 
 
 		["w", "設定 %d.Servo_Color 角度為 %d.servovalue","runServo", "綠色調角器", 90,
-		{"encode":"{d0}{d1}","setup":"servo_{0}.attach({0});\n","inc":"","def":"Servo servo_{0};\n","work":"servo_{0}.write({1});\n","loop":""}],
+		{"encode":"{d0}{d1}",
+		"setup":"pinMode({0}, OUTPUT); //servo s\nfor(int i=0;i<50;i++){servopulse(0.0);delay(15);}//demo\n",
+		"inc":"",
+		"def":"void servopulse(float angle){\nint pulsewidth=(angle*11)+530;\ndigitalWrite({0},HIGH);\ndelayMicroseconds(pulsewidth);\ndigitalWrite(10,LOW);\ndelayMicroseconds(20000-pulsewidth);}\n",
+		"work":"for(int i=0;i<50;i++){servopulse({1});delay(15);}//demo\n",
+		"loop":""}
+		],
 
 		["R", "測得溫度(°C)","getTemp","0",
 		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*50)/10)-500)/10\n ","loop":""}],
@@ -91,18 +97,16 @@
 			"持續偵測電子羅盤",
 			"Compass_initial",
 			{
-				"setup":"
-  compass.begin();\n  compass.setRange(HMC5883L_RANGE_1_3GA);\n  compass.setMeasurementMode(HMC5883L_CONTINOUS);\n  compass.setDataRate(HMC5883L_DATARATE_30HZ);\n  compass.setSamples(HMC5883L_SAMPLES_8);\n  compass.setOffset(0, 0);\n",
-				"inc":"#include \"HMC5883L.h\"\n",
-				"def":"HMC5883L compass;\n",
-				"work":"  Vector norm = compass.readNormalize();\n  float heading = atan2(norm.YAxis, norm.XAxis);\n  float declinationAngle = (-4.16 + (26.0 / 60.0)) / (180 / M_PI);\n  heading += declinationAngle;\n  if (heading < 0)\n  {\n    heading += 2 * PI;\n  }\n  if (heading > 2 * PI)\n  {\n    heading -= 2 * PI;\n  }\n  float headingDegrees = heading * 180/M_PI;\n\n",
+				"setup":"Wire.begin();\ncompass.init();\ncompass.setSamplingRate(50);\ncompass.setRange(2);\ncompass.setOversampling(64);\n",
+				"inc":"#include \"QMC5883L.h\"\n",
+				"def":"\nQMC5883L compass;\n",
+				"work":"int heading = compass.readHeading();\n",
 				"loop":"",
 			}
 		],
-		["r", "取得羅盤值", "heading",
+
+		["r", "取得羅盤角度", "heading",
 		{"setup":"","inc":"","def":"","work":"heading","loop":""}],
-		["r", "取得羅盤角度", "headingDegrees",
-		{"setup":"","inc":"","def":"","work":"headingDegrees","loop":""}],
 		[
 			"w",
 			"啟動LCD",
@@ -211,135 +215,9 @@
 				delay(5000);\n",
 			}
 		],
-		[
-			"w",
-			"wifi part1 SSID:%s 密碼:%s",
-			"WIFI_PT1","","",
-			{
-				"setup":"pinMode(A0, INPUT);//s1
-pinMode(A1, INPUT);//s2
-pinMode(RLED, OUTPUT);//s3
-pinMode(GLED, OUTPUT);//s4
-pinMode(BLED, OUTPUT);//s5
-digitalWrite(RLED, LOW);//s6
-digitalWrite(GLED, LOW);//s7
-digitalWrite(BLED, LOW);//s8
-mySerial.begin(9600);//s9
-Serial.begin(9600);//s10
-mySerial.println(\"AT+CWMODE=1\");//s11
-delay(1000);//s12
-mySerial.println(\"AT+CWJAP_DEF=\\\"{0}\\\",\\\"{1}\\\"\");//s13           //SSID = WIFI名稱 PASSWORD=WIFI密碼
-delay(10000);//s14",
-				"inc":"#include \"DHT.h\"\n",
-				"def":"#define dhtPin 3
-#define dhtType DHT11
-DHT dht(dhtPin, dhtType);
-unsigned char buff[4] ={0,0,0,0};
-unsigned char buss[4] ={0,0,0,0};
-unsigned char temp_H =0;
-unsigned char hum_H =0;
-unsigned char val_H=0;
-unsigned char val_L=0;
-SoftwareSerial mySerial(10, 11); // RX, TX
-int LED[]={0,0,0} ;
-int RLED = 5;
-int GLED = 6;
-int BLED = 7;
-void LEDD();
-char str;",
-				"work":"",
-				"loop":"",
-			}
-		],
-
-		[
-			"w",
-			"wifi part2 IP:%s PORT:%s",
-			"WIFI_PT2","","",
-			{
-				"setup":"mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\\"{0}\\\",{1}\");//s15             //IP=伺服器IP位置 PORT=3000
-delay(1000);//s16
-mySerial.println(\"AT+CIPMODE=1\");//s17
-delay(1000);//s18
-mySerial.println(\"AT+CIPSEND\");//s19
-delay(1000);//s20
-while(mySerial.available()){//s21
-Serial.println(mySerial.available());//s22
-mySerial.read();//s23
-}//s24
-Serial.println(mySerial.available());//s25",
-				"inc":"",
-				"def":"",
-				"work":"",
-				"loop":"float hum = dht.readHumidity();//l1//讀取濕度
-float temp = dht.readTemperature();//l12//讀取攝氏溫度
-temp_H = temp/1;//l3
-hum_H = hum/1;//l4
-buss[0]= temp_H;//l5
-buss[1]= (temp-temp_H)*10;//l6
-buss[2]= hum/1;//l7
-buss[3]= (hum-hum_H)*10;  //l8
-mySerial.begin(9600);//l9
-float val_1=analogRead(A0)*5.02/1013;//l10
-float val_3=analogRead(A1)*5.02/1013;//l11
-val_L=val_3/1;//l12
-buff[0]=val_H;//l13
-buff[1]=(val_1-val_H)*10;//l14
-buff[2]=val_L;//l15
-buff[3]=(val_3-val_L)*10;  //l16
-mySerial.print('S');//l17            /*將資料傳到樹梅派*/
-for(int z = 0;z<4;z++)//l18
-	mySerial.print(buss[z]);//l19
-for(int i = 0;i<4;i++)//l20
-	mySerial.print(buff[i]); //l21
-mySerial.print('E');//l22
-delay(200);//l23                  /*接受樹梅派的資料*/
-while(mySerial.available()>2) {//l24
-str=mySerial.read();//l25
-Serial.print(str);//l26
-LED[0]= str;//l27
-delay(20);//l28
-str=mySerial.read();//l29
-Serial.print(str);//l30
-LED[1]= str;//l31
-delay(20);//l32
-str=mySerial.read();//l33
-Serial.print(str);//l34
-LED[2]= str;//l35
-delay(20);//l36
-LEDD();//l37
-Serial.print(val_1);//l38
-Serial.println(\"v\");//l39
-Serial.print(val_3);//l40
-Serial.println(\"v\");//l41
-Serial.println(LED[0]);//l42
-Serial.println(LED[1]);//l43
-Serial.println(LED[2]);//l44
-}//l45",
-			}
-		],
-		[
-			"w",
-			"wifi part3 0==49:%s else:%s 1==49:%s else:%s 2==49:%s else:%s",
-			"WIFI_PT3","","","","","","",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"void LEDD(){//LEDD0
-if(LED[0] == 49){{0}}//LEDD1          /*digitial挖空*/
-else{{1}}//LEDD2
-if(LED[1] == 49){{2}}//LEDD3
-else{{3}}//LEDD4
-if(LED[2] == 49){{4}}//LEDD5
-else{{5}}//LEDD6
-}//LEDD7",
-				"work":"",
-				"loop":"",
-			}
-		],
 		["b", "指紋辨識 腳位(%n, %n)", "fingerPrint", "3", "2",
 		    {
-		        "setup":"
+					"setup":"
 FP_Serial.begin(9600); //software serial for fingeprint module
 //intial fingerprint module of protocol
 FP_OPEN(FP_Serial);
@@ -442,11 +320,243 @@ delay(1500);",
 				"loop":"",
 			}
 		],
-	],
+		[
+			"w",
+			"GPS初始化設定",
+			"GPS_senser",
+			{
+				"setup":"Serial.begin(9600);\nserial_collection.begin(9600);\n",
+				"inc":"#include \"TinyGPSPlus.h\"\n#include <SoftwareSerial.h>\n",
+				"def":"SoftwareSerial serial_collection(3,2);     //Rx,Tx\nTinyGPSPlus gps;\n",
+				"work":"while(serial_collection.available())\n{\ngps.encode(serial_collection.read());\n}\n",
+				"loop":"",
+			}
+		],
 
+
+		[
+			"r", "GPS經度", "Longtitude",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"(gps.location.lng())",
+				"loop":"",
+			}
+		],
+		[
+			"r", "GPS緯度", "Latitude",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"(gps.location.lat())",
+				"loop":"",
+			}
+		],
+		[
+			"r", "海拔高度", "Altitude Feet",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"(gps.altitude.feet())",
+				"loop":"",
+			}
+		],
+		[
+			"w", "設定私有雲端", "Owncloud",
+			{
+				"setup":"mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\\"192.168.137.248\\\",3000\");\ndelay(1000);\nmySerial.println(\"AT+CIPMODE=1\");\ndelay(1000);\nmySerial.println(\"AT+CIPSEND\");\ndelay(1000);\nwhile(mySerial.available()){\nSerial.println(mySerial.available());\nmySerial.read();\n}\nSerial.println(mySerial.available());\n ",
+				"inc":"",
+				"def":"unsigned char buff[36] ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};\nint LED[9]={0,0,0,0,0,0,0,0,0};\ndouble val;\n",
+				"work":"",
+				"loop":"",
+			}
+		],
+		[
+			"w", "上傳資料%n,%n", "updata","","",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"{0}={0}*100;\n{1}={1}*100;\ntemp=temp*100;\nm1=m1*100;\nbuff[0]=(int){0}/100000;\nbuff[1]=(int){0}/10000%10;\nbuff[2]=(int){0}/1000%10;\nbuff[3]=(int){0}/100%10;\nbuff[4]=(int){0}/10%10;\nbuff[5]=(int){0}%10\n;buff[6]=(int){1}/100000;\nbuff[7]=(int){1}/10000%10;\nbuff[8]=(int){1}/1000%10;\nbuff[9]=(int){1}/100%10;\nbuff[10]=(int){1}/10%10;\nbuff[11]=(int){1}%10;\nbuff[12]=(int)m1/100000;\nbuff[13]=(int)m1/10000%10;\nbuff[14]=(int)m1/1000%10;\nbuff[15]=(int)m1/100%10;\nbuff[16]=(int)m1/10%10;\nbuff[17]=(int)m1%10;\nbuff[18]=(int)ADC1/100000;\nbuff[19]=(int)ADC1/10000%10;\nbuff[20]=(int)ADC1/1000%10;\nbuff[21]=(int)ADC1/100%10;\nbuff[22]=(int)ADC1/10%10;\nbuff[23]=(int)ADC1%10;\nbuff[24]=0;\nbuff[25]=0;\nbuff[26]=0;\nbuff[27]=0;\nbuff[28]=0;\nbuff[29]=0;\nbuff[30]=0;\nbuff[31]=0;\nbuff[32]=0;\nbuff[33]=0;\nbuff[34]=0;\nbuff[35]=0;\nfor(int i = 0;i<36;i++) {\nmySerial.print(buff[i]); \n}\ndelay(600);\n",
+				"loop":"",
+			}
+		],
+		[
+			"w", "計算資料回傳", "backdata",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"
+if(mySerial.available()>21) {\n
+char Rxbuff[100];\n
+for(int i=0;i<22;i++) {\n
+Rxbuff[i]=mySerial.read();\n
+}\n
+for(int i = 0 ; i<10;i++) {\n
+if(Rxbuff[i]=='s') {\n
+LED[0]=Rxbuff[i+1];\n
+LED[1]=Rxbuff[i+2];\n
+LED[2]=Rxbuff[i+3];\n
+LED[3]=Rxbuff[i+4];\n
+LED[4]=Rxbuff[i+5];\n
+LED[5]=Rxbuff[i+6];\n
+LED[6]=Rxbuff[i+7];\n
+LED[7]=Rxbuff[i+8];\n
+LED[8]=Rxbuff[i+9];\n
+val=((LED[3]-48)*100000+(LED[4]-48)*10000+(LED[5]-48)*1000+(LED[6]-48)*100+(LED[7]-48)*10+(LED[8]-48))/100;",
+				"loop":""
+			}
+		],
+		[
+			"w", "啟動NODE RED", "setupNODERED",
+			{
+		    "setup":"",
+		    "inc":"#include <SoftwareSerial.h>\n",
+		    "def":"unsigned char buff[36] ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int LED[9]={0,0,0,0,0,0,0,0,0};
+SoftwareSerial mySerial(2, 3);
+",
+		    "work":"",
+		    "loop":"",
+		  }
+		],
+		[
+		  "w",
+		  "NODE RED WIFI SSID:%s 密碼:%s",
+		  "NODERED_WIFI","","",
+		  {
+		    "setup":"
+mySerial.begin(9600);
+Serial.begin(9600);
+mySerial.println(\"AT+CWMODE=1\");//s11
+delay(1000);//s12
+mySerial.println(\"AT+CWJAP_DEF=\\\"\" + String({0}) + \"\\\" , \\\"\" + String({1}) + \"\\\"\"); //SSID = WIFI名稱 PASSWORD=WIFI密碼
+delay(10000);//s14
+",
+		    "inc":"",
+		    "def":"",
+		    "work":"",
+		    "loop":"",
+		  }
+		],
+		[
+		  "w",
+		  "NODE RED TCP連線 IP:%s PORT:%s",
+		  "NODERED_TCP","","",
+		  {
+		    "setup":"
+mySerial.println(\"AT+CIPSTART=\\\"TCP\\\", \\\"\" + String({0}) + \"\\\", {1}\"); //IP=伺服器IP位置 PORT=3000
+delay(1000);//s16
+mySerial.println(\"AT+CIPMODE=1\");//s17
+delay(1000);//s18
+mySerial.println(\"AT+CIPSEND\");//s19
+delay(1000);//s20
+while(mySerial.available()){//s21
+Serial.println(mySerial.available());//s22
+mySerial.read();//s23
+}//s24
+Serial.println(mySerial.available());//s25
+",
+		    "inc":"",
+		    "def":"",
+		    "work":"",
+		    "loop":""
+		  }
+		],
+		[
+		  "w",
+		  "設定封包%m.WifiDataChennel 為%m.Wifi_Node_Red_Input",
+		  "WIFI_PT4","data1","temp",
+		  {
+		    "setup":"",
+		    "inc":"",
+		    "def":"double node_red_output[4];\n",
+		    "work":"buff[{0}]=node_red_output[{1}]/100000;
+buff[{0}+1]=(int)node_red_output[{1}]/10000%10;
+buff[{0}+2]=(int)node_red_output[{1}]/1000%10;
+buff[{0}+3]=(int)node_red_output[{1}]/100%10;
+buff[{0}+4]=(int)node_red_output[{1}]/10%10;
+buff[{0}+5]=(int)node_red_output[{1}]%10;
+",
+		    "loop":"",
+		  }
+		],
+		[
+		  "w",
+		  "送出封包",
+		  "WIFI_PT5",
+		  {
+		    "setup":"",
+		    "inc":"",
+		    "def":"",
+		    "work":"
+for(int i = 0;i<36;i++) {
+mySerial.print(buff[i]);
+}
+delay(600);
+",
+		    "loop":"",
+		  }
+		],
+		[
+		  "w",
+		  "NODE RED 回傳資料",
+		  "WIFI_GET_DATA",
+		  {
+		    "setup":"",
+		    "inc":"",
+		    "def":"unsigned long val;\n",
+		    "work":"
+if(mySerial.available()>21) {//1
+char Rxbuff[100];//2
+for(int i=0;i<22;i++){//3
+Rxbuff[i]=mySerial.read();//4
+}//5
+for(int i = 0 ; i<10;i++){//6
+if(Rxbuff[i]=='s'){//7
+LED[0]=Rxbuff[i+1];//8
+LED[1]=Rxbuff[i+2];//9
+LED[2]=Rxbuff[i+3];//10
+LED[3]=Rxbuff[i+4];//11
+LED[4]=Rxbuff[i+5];//12
+LED[5]=Rxbuff[i+6];//13
+LED[6]=Rxbuff[i+7];//14
+LED[7]=Rxbuff[i+8];//15
+LED[8]=Rxbuff[i+9];//16
+}//17
+}//18
+}//19
+val=((LED[3]-48)*100000+(LED[4]-48)*10000+(LED[5]-48)*1000+(LED[6]-48)*100+(LED[7]-48)*10+(LED[8]-48))/100;//20
+",
+		    "loop":"",
+		  }
+		],
+		[
+		  "r", "NODE RED 開關 %d.NODERED_switchs 狀態", "NODERED_switchs", "1",
+		  {
+		    "setup":"",
+		    "inc":"",
+		    "def":"
+int getSwitchValue(int s) {
+switch (s) {
+case 1: return LED[0];
+case 2: return LED[1];
+case 3: return LED[2];
+default: return 0;
+}
+} // END OF getSwitchValue",
+		    "work":"getSwitchValue({0})",
+		    "loop":""
+		  }
+		]
+	],
 	"menus": {
 		"yellowPorts":["Port1","Port2","Port3","Port4"],
-    	"bluePorts":["Port1","Port2","Port3","Port4"],
+      "bluePorts":["Port1","Port2","Port3","Port4"],
     	"grayPorts":[],
     	"whitePorts":["Port1","Port2","Port3","Port4"],
     	"blackPorts":["Port3","Port4"],
@@ -478,22 +588,24 @@ delay(1500);",
 		"touch_mode":["direct","toggle"],
 		"button_key":["key1","key2","key3","key4"],
 		"humiture":["humidity","temperature"],
-        "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
-        "LED_Color":["紅色LED","黃色LED","綠色LED"],
-	"IO_outin":["紅光","藍光","綠光"],
-        "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
-        "LED_Switch":["開","關"],
-	"IO_Switch":["亮","不亮"],
-        "Servo_Color":["綠色調角器","黃色調角器"],
-        "Ultrasonic_Color":["白色超音波","藍色超音波"],
-        "servovalue":["0","45","90","135","180"],
+    "Sensor_pin":["綠色 光感測器","紅色 光感測器"],
+    "LED_Color":["紅色LED","黃色LED","綠色LED"],
+		"IO_outin":["紅光","藍光","綠光"],
+    "PC_Pin":["PC1","PC2","PC3","PC4","PC5"],
+    "LED_Switch":["開","關"],
+		"IO_Switch":["亮","不亮"],
+    "Servo_Color":["綠色調角器","紅色調角器"],
+    "Ultrasonic_Color":["白色超音波","藍色超音波"],
+    "servovalue":["0","45","90","135","180"],
 		"digital":["HIGH", "LOW"],
 		"RGB_detector":["偵測紅色", "偵測綠色", "偵測藍色"],
 		"LCDrow":[1, 2],
 		"LCDcol":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
 		"WifiHorS":["硬體", "軟體"],
+		"NODERED_switchs":[1, 2, 3],
+		"WifiDataChennel":["data1", "data2", "data3", "data4", "data5", "data6"],
+		"Wifi_Node_Red_Input":["temp","LDM1","m1","ADC1"]
 	},
-
 	"values":{
 		"led left":2,
 		"led right":1,
@@ -555,8 +667,8 @@ delay(1500);",
 		"綠光":16,
 		"白色馬達":9,
 		"藍色馬達":10,
-                "綠色調角器":9,
-                "黃色調角器":10,
+                "綠色調角器":10,
+                "紅色調角器":9,
                 "白色超音波":12,
                 "藍色超音波":13,
 		"紅色 光感測器":9,
@@ -618,6 +730,8 @@ delay(1500);",
 		"偵測藍色":2,
 		"硬體":0,
 		"軟體":1,
+		"data1":0, "data2":6, "data3":12, "data4":18, "data5":24, "data6":30,
+		"temp":0,"LDM1":1,"m1":2,"ADC1":3
 	},
 	"translators":{
 	}
