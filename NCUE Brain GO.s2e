@@ -574,7 +574,7 @@ pwm.setPWM({0}, PWM_para1, PWM_para2);\n",
 		],
 		[
 		  "w",
-		  "PWM Pin:%d.PWMPin Pulselen:%d",
+		  "PWM Pin:%d.PWM_Pin Pulselen:%d",
 		  "PWM_pulselen","0","4096",
 		  {
 		    "setup":"pwm.begin();\npwm.setPWMFreq(60);\n",
