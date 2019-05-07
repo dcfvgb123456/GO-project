@@ -105,6 +105,32 @@
 		{"setup":"","inc":"","def":"","work":"headingDegrees","loop":""}],
 		[
 			"w",
+			"PWM Pin:%d.PWMPin Pulselen:%d",
+			"LCD_initial","0","4096",
+			{
+				"setup":"pwm.begin();\npwm.setPWMFreq(60);\n",
+				"inc":"#include <Wire.h>\n#include <Adafruit_PWMServoDriver.h>\n",
+				"def":"Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+void setServoPulse(uint8_t n, double pulse) {
+double pulselength;
+pulselength = 1000000;   // 1,000,000 us per second
+pulselength /= 60;   // 60 Hz
+Serial.print(pulselength); //1
+Serial.println(\" us per period\");
+pulselength /= 4096;  // 12 bits of resolution
+Serial.print(pulselength); //2
+Serial.println(\" us per bit\");
+pulse *= 1000;
+pulse /= pulselength;
+Serial.println(pulse);
+pwm.setPWM(n, 0, pulse);
+}",
+				"work":"pwm.setPWM({0}, 0, {1});\n",
+				"loop":"",
+			}
+		],
+		[
+			"w",
 			"啟動LCD",
 			"LCD_initial",
 			{
@@ -213,31 +239,19 @@
 		],
 		[
 			"w",
-			"私有雲 帳號:%s 密碼:%s",
+			"NODE RED WIFI SSID:%s 密碼:%s",
 			"WIFI_PT1","","",
 			{
-				"setup":"pinMode(A0, INPUT);//s1
-pinMode(A1, INPUT);//s2
-pinMode(RLED, OUTPUT);//s3
-pinMode(GLED, OUTPUT);//s4
-pinMode(BLED, OUTPUT);//s5
-digitalWrite(RLED, LOW);//s6
-digitalWrite(GLED, LOW);//s7
-digitalWrite(BLED, LOW);//s8
-mySerial.begin(115200);//s9
-Serial.begin(9600);//s10
+				"setup":"mySerial.begin(9600);
+Serial.begin(9600);
 mySerial.println(\"AT+CWMODE=1\");//s11
 delay(1000);//s12
 mySerial.println(\"AT+CWJAP_DEF=\\\"{0}\\\",\\\"{1}\\\"\");//s13           //SSID = WIFI名稱 PASSWORD=WIFI密碼
 delay(10000);//s14",
 				"inc":"#include <SoftwareSerial.h>\n",
-				"def":"unsigned char buff[6] ={0,0,0,0,0,0};  //傳資料到樹莓派
-unsigned int LED[4]={0,0,0,0}; //接收樹莓派的資料
-int m1;
-char LDM1;
-unsigned int data0,data1,data2,data3,data4,data5;
-char str;
-float temp,ADC1;
+				"def":"unsigned char buff[36] ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int LED[9]={0,0,0,0,0,0,0,0,0};
+SoftwareSerial mySerial(2, 3);
 ",
 				"work":"",
 				"loop":"",
@@ -245,7 +259,7 @@ float temp,ADC1;
 		],
 		[
 			"w",
-			"私有雲 IP位置:%s PORT:%s",
+			"NODE RED TCP連線 IP:%s PORT:%s",
 			"WIFI_PT2","","",
 			{
 				"setup":"mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\\"{0}\\\",{1}\");//s15             //IP=伺服器IP位置 PORT=3000
@@ -263,114 +277,72 @@ Serial.println(mySerial.available());//s25
 				"inc":"",
 				"def":"",
 				"work":"",
-				"loop":"mySerial.begin(115200);\n",
-			}
-		],
-		[
-			"w",
-			"私有雲設定腳位 RX:%s TX:%s",
-			"WIFI_SETUP1","","",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"SoftwareSerial mySerial({0}, {1});\n",
-				"work":"",
 				"loop":"",
 			}
 		],
 		[
 			"w",
-			"私有雲設定腳位 RLED:%s GLED:%s BLED:%s",
-			"WIFI_SETUP2","","","",
+			"設定封包%m.WifiDataChennel 為%m.Wifi_Node_Red_Input",
+			"WIFI_PT4","data1","temp",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"unsigned char  RLED = {0};\nunsigned char GLED = {1};\nunsigned char  BLED = {2};\n",
-				"work":"",
-				"loop":"",
-			}
-		],
-		[
-			"w",
-			"設定傳送通道%n.WifiDataChennel 為 %s",
-			"WIFI_PT3","data0","",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"",
-				"work":"{0} = {1};\n",
-				"loop":"",
-			}
-		],
-		[
-			"w",
-			"傳送資料",
-			"WIFI_PT4",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"",
-				"work":"buff[0]=data0;
-buff[1]=data1;
-buff[2]=data2;
-buff[3]=data3;
-buff[4]=data4;
-buff[5]=data5;
-for(int i = 0;i<6;i++) {
-mySerial.print(buff[i]);
-}
-delay(100);
+				"def":"double node_red_output[4];\n",
+				"work":"buff[{0}]=node_red_output[{1}]/100000;
+buff[{0}+1]=(int)node_red_output[{1}]/10000%10;
+buff[{0}+2]=(int)node_red_output[{1}]/1000%10;
+buff[{0}+3]=(int)node_red_output[{1}]/100%10;
+buff[{0}+4]=(int)node_red_output[{1}]/10%10;
+buff[{0}+5]=(int)node_red_output[{1}]%10;
 ",
 				"loop":"",
 			}
 		],
 		[
 			"w",
-			"接收資料",
+			"送出封包",
+			"WIFI_PT5",
+			{
+				"setup":"",
+				"inc":"",
+				"def":"",
+				"work":"for(int i = 0;i<36;i++) {
+mySerial.print(buff[i]);
+}
+delay(600);
+",
+				"loop":"",
+			}
+		],
+		[
+			"w",
+			"NODE RED 回傳資料",
 			"WIFI_GET_DATA",
 			{
 				"setup":"",
 				"inc":"",
-				"def":"",
-				"work":"while(mySerial.available()>3) {//1
-str=mySerial.read();//2
-Serial.print(str);//3
-LED[1]= str;//4
-delay(20);//5
-str=mySerial.read();//6
-Serial.print(str);//7
-LED[2]= str;//8
-delay(20);//9
-str=mySerial.read();//10
-Serial.print(str);//11
-LED[3]= str;//12
-delay(20);//13
-}//14
+				"def":"unsigned long val;\n",
+				"work":"if(mySerial.available()>21) {//1
+char Rxbuff[100];//2
+for(int i=0;i<22;i++){//3
+Rxbuff[i]=mySerial.read();//4
+}//5
+for(int i = 0 ; i<10;i++){//6
+if(Rxbuff[i]=='s'){//7
+LED[0]=Rxbuff[i+1];//8
+LED[1]=Rxbuff[i+2];//9
+LED[2]=Rxbuff[i+3];//10
+LED[3]=Rxbuff[i+4];//11
+LED[4]=Rxbuff[i+5];//12
+LED[5]=Rxbuff[i+6];//13
+LED[6]=Rxbuff[i+7];//14
+LED[7]=Rxbuff[i+8];//15
+LED[8]=Rxbuff[i+9];//16
+}//17
+}//18
+}//19
+val=((LED[3]-48)*100000+(LED[4]-48)*10000+(LED[5]-48)*1000+(LED[6]-48)*100+(LED[7]-48)*10+(LED[8]-48))/100;//20
 ",
-				"loop":"",
-			}
-		],
-		[
-			"b",
-			"如果收到%m.WifiGetData 可讀",
-			"WIFI_GET_DATA_Avaliable","LED[1]",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"",
-				"work":"{0} == 48",
-				"loop":"",
-			}
-		],
-		[
-			"w",
-			"設定%m.Wifi_LED_RGB 為%m.Wifi_LED_RGB_ONOFF",
-			"WIFI_GET_DATA_ChangeLED","LED[1]","明",
-			{
-				"setup":"",
-				"inc":"",
-				"def":"",
-				"work":"digitalWrite({0}, {1});",
 				"loop":"",
 			}
 		],
@@ -591,10 +563,12 @@ delay(1500);",
 		"LCDrow":[1, 2],
 		"LCDcol":[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
 		"WifiHorS":["硬體", "軟體"],
-		"WifiDataChennel":["data0", "data1", "data2", "data3", "data4", "data5"],
+		"WifiDataChennel":["data1", "data2", "data3", "data4", "data5", "data6"],
+		"Wifi_Node_Red_Input":["temp","LDM1","m1","ADC1"],
 		"WifiGetData":["LED[1]", "LED[2]", "LED[3]"],
 		"Wifi_LED_RGB":["RLED", "GLED", "BLED"],
 		"Wifi_LED_RGB_ONOFF":["明", "暗"],
+		"PWMPin":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
 	},
 
 	"values":{
@@ -721,6 +695,8 @@ delay(1500);",
 		"偵測藍色":2,
 		"硬體":0,
 		"軟體":1,
+		"data1":0, "data2":6, "data3":12, "data4":18, "data5":24, "data6":30,
+		"temp":0,"LDM1":1,"m1":2,"ADC1":3,
 		"明":"HIGH",
 		"暗":"LOW",
 	},
