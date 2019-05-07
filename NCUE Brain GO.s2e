@@ -552,6 +552,51 @@ default: return 0;
 		    "work":"getSwitchValue({0})",
 		    "loop":""
 		  }
+		],
+		[
+			"w", "PWM Pin:%d.PWM_Pin  %d.PWM_switch", "PWM_init", "0", "開",
+			{
+			"setup":"pwm.begin();\npwm.setPWMFreq(1000);\nWire.setClock(400000);\n",
+			"inc":"#include <Wire.h>\n#include <Adafruit_PWMServoDriver.h>\n",
+			"def":"Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();\nint PWM_para1 = 0;\nint PWM_para2 = 0\n",
+			"work":"
+if({1} == 0) {
+PWM_para1 = 4096;
+PWM_para2 = 0;
+}
+else {
+PWM_para1 = 0;
+PWM_para2 = 4096;
+}
+pwm.setPWM({0}, PWM_para1, PWM_para2);\n",
+			"loop":""
+			}
+		],
+		[
+		  "w",
+		  "PWM Pin:%d.PWMPin Pulselen:%d",
+		  "PWM_pulselen","0","4096",
+		  {
+		    "setup":"pwm.begin();\npwm.setPWMFreq(60);\n",
+		    "inc":"#include <Wire.h>\n#include <Adafruit_PWMServoDriver.h>\n",
+		    "def":"Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+void setServoPulse(uint8_t n, double pulse) {
+double pulselength;
+pulselength = 1000000;   // 1,000,000 us per second
+pulselength /= 60;   // 60 Hz
+Serial.print(pulselength); //1
+Serial.println(\" us per period\");
+pulselength /= 4096;  // 12 bits of resolution
+Serial.print(pulselength); //2
+Serial.println(\" us per bit\");
+pulse *= 1000;
+pulse /= pulselength;
+Serial.println(pulse);
+pwm.setPWM(n, 0, pulse);
+}",
+		    "work":"pwm.setPWM({0}, 0, {1});\n",
+		    "loop":"",
+		  }
 		]
 	],
 	"menus": {
@@ -604,7 +649,9 @@ default: return 0;
 		"WifiHorS":["硬體", "軟體"],
 		"NODERED_switchs":[1, 2, 3],
 		"WifiDataChennel":["data1", "data2", "data3", "data4", "data5", "data6"],
-		"Wifi_Node_Red_Input":["temp","LDM1","m1","ADC1"]
+		"Wifi_Node_Red_Input":["temp","LDM1","m1","ADC1"],
+		"PWM_switch":["開","關"],
+		"PWM_Pin":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 	},
 	"values":{
 		"led left":2,
